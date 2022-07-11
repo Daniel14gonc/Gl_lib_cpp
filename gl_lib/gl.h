@@ -1,5 +1,17 @@
 #include "render.h"
 
+void glInit();
+void glCreateWindow(int, int);
+void glViewPort(int, int, int, int);
+void glCLear();
+void glClearColor();
+void glVertex(float, float);
+void glColor(float, float, float);
+void glFinish();
+
+
+
+/*
 class MyGl
 {
 	private:
@@ -17,4 +29,4 @@ class MyGl
 		void glVertex(float, float);
 		void glColor(float, float, float);
 		void glFinish();
-};
+};*/

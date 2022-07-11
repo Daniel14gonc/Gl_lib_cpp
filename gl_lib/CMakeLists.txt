@@ -1,6 +1,6 @@
 add_library(gl_lib SHARED
-	MyGl.h
-	MyGl.cpp
+	gl.h
+	gl.cpp
 	render.h
 	render.cpp
 )

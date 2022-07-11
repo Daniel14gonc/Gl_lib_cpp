@@ -1,16 +1,14 @@
 #include <iostream>
-#include "MyGl.h"
+#include "gl.h"
 
 using namespace std;
 
+int algo = 3;
+
 int main()
 {
-	MyGl myGl;
-	myGl.glCreateWindow(1024, 1024);
-	for(int i = 0; i < 1024; i++)
-	{
-		myGl.glVertex(i, i);
-	}
-	myGl.glFinish();
+	glCreateWindow(100, 100);
+	glVertex(0, 0);
+	glFinish();
 	return 0;
 }
