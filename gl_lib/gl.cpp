@@ -74,6 +74,7 @@ void glFinish()
 
 void glVertex(float x, float y)
 {
+	// Calculate coordinates based on normalized point.
 	int *coordinates = calculatePosition(x, y);
 	int xC = coordinates[0];
 	int yC = coordinates[1];
