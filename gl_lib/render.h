@@ -3,17 +3,25 @@
 class Render 
 {
 	private:
+		int x0, y0;
+		int widthV, heightV;
 		int width;
 		int height;
-		//unsigned char*** frameBuffer;
+		unsigned char* clearColor;
+		unsigned char* color;
+		unsigned char*** frameBuffer;
 		unsigned char* createFileHeader(int fileSize);
 		unsigned char* createSizeHeader(int, int);
-		int clear(unsigned char*);
-		//int writeHelper();
-		int frameBufferPrep();
-		int deleteMemory();
+		void deleteMemory();
+		int* calculatePosition(float, float);
 
 	public:
+		Render();
 		void startBuffer(int, int);
-		int write(unsigned char***, int, int);
+		int write();
+		void clear();
+		void point(float, float);
+		void changeClearColor(float, float, float);
+		void changeColor(float, float, float);
+		void viewPort(int, int, int, int);
 };

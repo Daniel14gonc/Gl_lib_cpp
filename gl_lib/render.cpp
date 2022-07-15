@@ -4,7 +4,56 @@
 
 using namespace std;
 
-int Render::write(unsigned char*** frameBuffer, int width, int height)
+Render::Render()
+{
+	clearColor = new unsigned char[3];
+	clearColor[2] = (unsigned char) (255);
+	clearColor[1] = (unsigned char) (255);
+	clearColor[0] = (unsigned char) (255); 
+
+	color = new unsigned char[3];
+	color[2] = (unsigned char) (0);
+	color[1] = (unsigned char) (0);
+	color[0] = (unsigned char) (0); 
+}
+
+void Render::startBuffer(int w, int h)
+{
+	height = h;
+	width = w;
+	frameBuffer = new unsigned char** [height];
+	for(int i = 0; i < height; i++)
+	{
+		frameBuffer[i] = new unsigned char* [width];
+	};
+	x0 = 0;
+	y0 = 0;
+	widthV = w;
+	heightV = h;
+	clear();
+}
+
+void Render::clear()
+{
+	for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+        	frameBuffer[i][j] = new unsigned char[3];
+        	frameBuffer[i][j][2] = clearColor[2];
+        	frameBuffer[i][j][1] = clearColor[1];
+        	frameBuffer[i][j][0] = clearColor[0];
+        }
+    }
+}
+
+// Clamping
+void Render::changeClearColor(float r, float g, float b)
+{
+	clearColor[2] = (int)(b*255);
+	clearColor[1] = (int)(g*255);
+	clearColor[0] = (int)(r*255);
+}
+
+int Render::write()
 {
 
 	// Define a padding size if width in bytes is not multiple of 4.
@@ -39,6 +88,7 @@ int Render::write(unsigned char*** frameBuffer, int width, int height)
 
 
 	fclose(imageFile);
+	// deleteMemory();
 	return 0;
 }
 
@@ -98,4 +148,60 @@ unsigned char* Render::createSizeHeader(int width, int height)
 
 
 	return bmpFileSize;
+}
+
+void Render::deleteMemory()
+{
+	for(int i = 0; i < height; i++)
+	{
+		for(int j = 0; j < height; j++)
+		{
+			delete[] frameBuffer[i][j];
+		}
+		delete[] frameBuffer[i];
+	};
+	frameBuffer = NULL;
+}
+
+int* Render::calculatePosition(float x, float y)
+{
+	int* coordinates = new int[2];
+	int xC, yC;
+	xC = x0 + (x + 1) * 0.5 * (widthV - 1);
+	yC = y0 + (y + 1) * 0.5 * (heightV - 1);
+	coordinates[0] = xC;
+	coordinates[1] = yC;
+
+	return coordinates;
+}
+
+void Render::point(float x, float y)
+{
+	int *coordinates = calculatePosition(x, y);
+	int xC = coordinates[0];
+	int yC = coordinates[1];
+	if (xC < width && yC < height){
+		frameBuffer[xC][yC][2] = color[2];
+		frameBuffer[xC][yC][1] = color[1];
+		frameBuffer[xC][yC][0] = color[0];
+	}
+	delete[] coordinates;
+}
+
+// Clamping
+void Render::changeColor(float r, float g, float b)
+{
+	color[2] = (int)(b*255);
+	color[1] = (int)(g*255);
+	color[0] = (int)(r*255);
+}
+
+void Render::viewPort(int x, int y, int w, int h)
+{
+	int* coordinates = calculatePosition(x, y);
+	x0 = x;
+	y0 = y;
+	widthV = w;
+	heightV = h;
+	delete[] coordinates;
 }
