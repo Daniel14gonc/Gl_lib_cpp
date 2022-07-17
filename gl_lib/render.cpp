@@ -55,9 +55,9 @@ void Render::changeClearColor(float r, float g, float b)
 	if (g < 0) g = 0;
 	if (b > 1) b = 1;
 	if (b < 0) b = 0;
-	clearColor[2] = (int)(b*255);
+	clearColor[2] = (int)(r*255);
 	clearColor[1] = (int)(g*255);
-	clearColor[0] = (int)(r*255);
+	clearColor[0] = (int)(b*255);
 }
 
 int Render::write()
@@ -215,9 +215,9 @@ void Render::changeColor(float r, float g, float b)
 	if (g < 0) g = 0;
 	if (b > 1) b = 1;
 	if (b < 0) b = 0;
-	color[2] = (int)(b*255);
+	color[2] = (int)(r*255);
 	color[1] = (int)(g*255);
-	color[0] = (int)(r*255);
+	color[0] = (int)(b*255);
 }
 
 void Render::viewPort(int x, int y, int w, int h)
