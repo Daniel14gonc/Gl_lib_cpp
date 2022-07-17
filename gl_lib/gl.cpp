@@ -45,3 +45,8 @@ void glViewPort(int x, int y, int width, int height)
 {
 	render->viewPort(x, y, width, height);
 }
+
+void glLine(float x0, float y0, float x1, float y1)
+{
+	render->drawLine(x0, y0, x1, y1);
+}

@@ -1,6 +1,7 @@
 #include "render.h"
 #include <iostream>
 #include <fstream>
+#include <cmath>
 
 using namespace std;
 
@@ -183,15 +184,26 @@ int* Render::calculatePosition(float x, float y)
 
 void Render::point(float x, float y)
 {
-	int *coordinates = calculatePosition(x, y);
+	int *coordinates = calculatePosition(y, x);
 	int xC = coordinates[0];
 	int yC = coordinates[1];
-	if (xC < width && yC < height && xC >= 0 && yC >= 0){
+	if (xC < width && yC < height && xC >= 0 && yC >= 0)
+	{
 		frameBuffer[xC][yC][2] = color[2];
 		frameBuffer[xC][yC][1] = color[1];
 		frameBuffer[xC][yC][0] = color[0];
 	}
 	delete[] coordinates;
+}
+
+void Render::pointLine(int x, int y)
+{
+	if (x < width && y < height && x  >= 0 && y >= 0)
+	{
+		frameBuffer[x][y][2] = color[2];
+		frameBuffer[x][y][1] = color[1];
+		frameBuffer[x][y][0] = color[0];
+	}
 }
 
 // Clamping
@@ -218,5 +230,60 @@ void Render::viewPort(int x, int y, int w, int h)
 		widthV = w;
 		heightV = h;
 		delete[] coordinates;
+	}
+}
+
+void Render::drawLine(float a, float b, float c, float d)
+{
+	int *coordinates = calculatePosition(a, b);
+	int x0 = coordinates[0];
+	int y0 = coordinates[1];
+	coordinates = calculatePosition(c, d);
+	int x1 = coordinates[0];
+	int y1 = coordinates[1];
+	delete[] coordinates;
+
+	float dy = abs(y1 - y0);
+	float dx = abs(x1 - x0);
+	float m = dy;
+
+	bool steep = dy > dx;
+
+	if (steep)
+	{
+		int temp = x0;
+		x0 = y0;
+		y0 = temp;
+		dy = abs(y1 - y0);
+		dx = abs(x1 - x0);
+		m = dy;
+	}
+
+	if (x0 > x1)
+	{
+		int temp = x0;
+		int temp2 = y0;
+		x0 = x1;
+		x1 = temp;
+		y0 = y1;
+		y1 = temp2;
+	}
+
+	float offset = 0;
+	float threshold = dx * 2;
+	int y = y0;
+
+	for(int x = x0; x <= x1; x++)
+	{
+		offset += dy * 2;
+		if (offset >= threshold)
+		{
+			int up = -1;
+			if (y0 < y1) up = 1;
+			y += up;
+			threshold += 1 * dx * 2;
+		}
+		if(steep) pointLine(x, y);
+		else pointLine(y, x);
 	}
 }

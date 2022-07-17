@@ -8,3 +8,4 @@ void glClearColor(float, float, float);
 void glVertex(float, float);
 void glColor(float, float, float);
 void glFinish();
+void glLine(float, float, float, float);

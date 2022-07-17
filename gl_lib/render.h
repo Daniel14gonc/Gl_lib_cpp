@@ -14,6 +14,7 @@ class Render
 		unsigned char* createSizeHeader(int, int);
 		void deleteMemory();
 		int* calculatePosition(float, float);
+		void pointLine(int, int);
 
 	public:
 		Render();
@@ -24,4 +25,5 @@ class Render
 		void changeClearColor(float, float, float);
 		void changeColor(float, float, float);
 		void viewPort(int, int, int, int);
+		void drawLine(float, float, float, float);
 };
