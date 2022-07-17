@@ -48,6 +48,12 @@ void Render::clear()
 // Clamping
 void Render::changeClearColor(float r, float g, float b)
 {
+	if (r > 1) r = 1;
+	if (r < 0) r = 0;
+	if (g > 1) g = 1;
+	if (g < 0) g = 0;
+	if (b > 1) b = 1;
+	if (b < 0) b = 0;
 	clearColor[2] = (int)(b*255);
 	clearColor[1] = (int)(g*255);
 	clearColor[0] = (int)(r*255);
@@ -180,7 +186,7 @@ void Render::point(float x, float y)
 	int *coordinates = calculatePosition(x, y);
 	int xC = coordinates[0];
 	int yC = coordinates[1];
-	if (xC < width && yC < height){
+	if (xC < width && yC < height && xC >= 0 && yC >= 0){
 		frameBuffer[xC][yC][2] = color[2];
 		frameBuffer[xC][yC][1] = color[1];
 		frameBuffer[xC][yC][0] = color[0];
@@ -191,6 +197,12 @@ void Render::point(float x, float y)
 // Clamping
 void Render::changeColor(float r, float g, float b)
 {
+	if (r > 1) r = 1;
+	if (r < 0) r = 0;
+	if (g > 1) g = 1;
+	if (g < 0) g = 0;
+	if (b > 1) b = 1;
+	if (b < 0) b = 0;
 	color[2] = (int)(b*255);
 	color[1] = (int)(g*255);
 	color[0] = (int)(r*255);
@@ -198,10 +210,13 @@ void Render::changeColor(float r, float g, float b)
 
 void Render::viewPort(int x, int y, int w, int h)
 {
-	int* coordinates = calculatePosition(x, y);
-	x0 = x;
-	y0 = y;
-	widthV = w;
-	heightV = h;
-	delete[] coordinates;
+	if(x < width && y < height && x >= 0 && y >= 0)
+	{
+		int* coordinates = calculatePosition(x, y);
+		x0 = x;
+		y0 = y;
+		widthV = w;
+		heightV = h;
+		delete[] coordinates;
+	}
 }
