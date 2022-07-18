@@ -252,8 +252,11 @@ void Render::drawLine(float a, float b, float c, float d)
 	if (steep)
 	{
 		int temp = x0;
+		int temp2 = x1;
 		x0 = y0;
 		y0 = temp;
+		x1 = y1;
+		y1 = temp2;
 		dy = abs(y1 - y0);
 		dx = abs(x1 - x0);
 		m = dy;
