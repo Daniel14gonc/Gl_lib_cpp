@@ -46,9 +46,10 @@ void Render::clear()
     }
 }
 
-// Clamping
+
 void Render::changeClearColor(float r, float g, float b)
 {
+	// Clamping
 	if (r > 1) r = 1;
 	if (r < 0) r = 0;
 	if (g > 1) g = 1;
@@ -206,9 +207,9 @@ void Render::pointLine(int x, int y)
 	}
 }
 
-// Clamping
 void Render::changeColor(float r, float g, float b)
 {
+	// Clamping
 	if (r > 1) r = 1;
 	if (r < 0) r = 0;
 	if (g > 1) g = 1;
@@ -224,7 +225,6 @@ void Render::viewPort(int x, int y, int w, int h)
 {
 	if(x < width && y < height && x >= 0 && y >= 0)
 	{
-		int* coordinates = calculatePosition(x, y);
 		x0 = x;
 		y0 = y;
 		widthV = w;

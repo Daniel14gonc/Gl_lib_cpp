@@ -10,3 +10,5 @@ utilizando C++.
 3. Ejecuta el script de bash `./run.sh`.
 3. Entra en la carpeta `build` y ahí estará el archivo .bmp donde verás el resultado de
 las gráficas creadas.
+
+## Construye el proyecto localmente
