@@ -10,3 +10,7 @@ utilizando C++.
 3. Ejecuta el script de bash `./run.sh`.
 3. Entra en la carpeta `build` y ahí estará el archivo .bmp donde verás el resultado de
 las gráficas creadas.
+
+## Como ver la tarea de la casa hecha con líneas
+1. Después de clonar el repositorio tienes que cambiarta a la branch de house con `git checkout house`.
+2. Ahora que estás en la branch house, solo corre `./run.sh` y dentro la carpeta `build` encontrarás la imagen.
