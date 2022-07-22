@@ -107,7 +107,6 @@ void fillPolygon(int size, int points[][2])
 
 int main()
 {
-	cout << 25 + ( std::rand() % ( 63 - 25 + 1 ) ) << endl;
 	glInit();
 	glCreateWindow(800, 800);
 
