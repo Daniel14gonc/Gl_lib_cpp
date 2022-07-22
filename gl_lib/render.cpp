@@ -172,19 +172,20 @@ void Render::deleteMemory()
 
 int* Render::calculatePosition(float x, float y)
 {
+	// cout << y << endl;
 	int* coordinates = new int[2];
 	int xC, yC;
 	xC = x0 + (x + 1) * 0.5 * (widthV - 1);
 	yC = y0 + (y + 1) * 0.5 * (heightV - 1);
-	coordinates[0] = xC;
-	coordinates[1] = yC;
+	coordinates[0] = yC;
+	coordinates[1] = xC;
 
 	return coordinates;
 }
 
 void Render::point(float x, float y)
 {
-	int *coordinates = calculatePosition(y, x);
+	int *coordinates = calculatePosition(x, y);
 	int xC = coordinates[0];
 	int yC = coordinates[1];
 	if (xC < width && yC < height && xC >= 0 && yC >= 0)
@@ -198,7 +199,7 @@ void Render::point(float x, float y)
 
 void Render::pointLine(int x, int y)
 {
-	if (x < width && y < height && x  >= 0 && y >= 0)
+	if (x < width && y < height && x >= 0 && y >= 0)
 	{
 		frameBuffer[x][y][2] = color[2];
 		frameBuffer[x][y][1] = color[1];
