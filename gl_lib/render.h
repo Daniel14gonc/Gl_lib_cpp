@@ -1,4 +1,7 @@
 #include <string>
+#include "obj.h"
+
+using namespace std;
 
 class Render 
 {
@@ -15,6 +18,7 @@ class Render
 		void deleteMemory();
 		int* calculatePosition(float, float);
 		void pointLine(int, int);
+		vector<int> transformVertex(vector<float>, int*, int*);
 
 	public:
 		Render();
@@ -26,4 +30,6 @@ class Render
 		void changeColor(float, float, float);
 		void viewPort(int, int, int, int);
 		void drawLine(float, float, float, float);
+		void drawLine(int, int, int, int);
+		void readObj(string);
 };

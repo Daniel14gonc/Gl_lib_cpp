@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <vector>
 
 using namespace std;
 
@@ -235,7 +236,7 @@ void Render::viewPort(int x, int y, int w, int h)
 
 void Render::drawLine(float a, float b, float c, float d)
 {
-	int *coordinates = calculatePosition(a, b);
+	/*int *coordinates = calculatePosition(a, b);
 	int x0 = coordinates[0];
 	int y0 = coordinates[1];
 	coordinates = calculatePosition(c, d);
@@ -245,7 +246,6 @@ void Render::drawLine(float a, float b, float c, float d)
 
 	float dy = abs(y1 - y0);
 	float dx = abs(x1 - x0);
-	float m = dy;
 
 	bool steep = dy > dx;
 
@@ -254,9 +254,9 @@ void Render::drawLine(float a, float b, float c, float d)
 		int temp = x0;
 		x0 = y0;
 		y0 = temp;
-		dy = abs(y1 - y0);
-		dx = abs(x1 - x0);
-		m = dy;
+		int temp2 = y1;
+		x1 = y1;
+		y1 = temp2;
 	}
 
 	if (x0 > x1)
@@ -268,6 +268,9 @@ void Render::drawLine(float a, float b, float c, float d)
 		y0 = y1;
 		y1 = temp2;
 	}
+
+	dy = abs(y1 - y0);
+	dx = abs(x1 - x0);
 
 	float offset = 0;
 	float threshold = dx * 2;
@@ -285,5 +288,95 @@ void Render::drawLine(float a, float b, float c, float d)
 		}
 		if(steep) pointLine(x, y);
 		else pointLine(y, x);
+	}*/
+}
+
+void Render::drawLine(int a, int b, int c, int d)
+{
+	int x0 = a;
+	int y0 = b;
+	int x1 = c;
+	int y1 = d;
+
+	float dy = abs(y1 - y0);
+	float dx = abs(x1 - x0);
+
+	bool steep = dy > dx;
+
+	if (steep)
+	{
+		int temp = x0;
+		x0 = y0;
+		y0 = temp;
+		int temp2 = x1;
+		x1 = y1;
+		y1 = temp2;
 	}
+
+	if (x0 > x1)
+	{
+		int temp = x0;
+		int temp2 = y0;
+		x0 = x1;
+		x1 = temp;
+		y0 = y1;
+		y1 = temp2;
+	}
+
+	dy = abs(y1 - y0);
+	dx = abs(x1 - x0);
+
+	float offset = 0;
+	float threshold = dx * 2;
+	int y = y0;
+
+	for(int x = x0; x <= x1; x++)
+	{
+		offset += dy * 2;
+		if (steep) pointLine(x, y);
+		else pointLine(y, x);
+		if (offset >= threshold)
+		{
+			int up = -1;
+			if (y0 < y1) up = 1;
+			y += up;
+			threshold += 1 * dx * 2;
+		}
+	}
+}
+
+void Render::readObj(string filename)
+{
+	Obj* obj = new Obj(filename);
+	vector<vector<vector<int>>> faces = obj->getFaces();
+	vector<vector<float>> vertex = obj->getVertex();
+	int scaleFactor[2] = {50, 50};
+	int translateFactor[2] = {150, 150};
+	for (vector<vector<int>> face : faces)
+	{
+		int f1 = face.at(0).at(0) - 1;
+		int f2 = face.at(1).at(0) - 1;
+		int f3 = face.at(2).at(0) - 1;
+		int f4 = face.at(3).at(0) - 1;
+
+		vector<int> v1 = transformVertex(vertex.at(f1), scaleFactor, translateFactor);
+		vector<int> v2 = transformVertex(vertex.at(f2), scaleFactor, translateFactor);
+		vector<int> v3 = transformVertex(vertex.at(f3), scaleFactor, translateFactor);
+		vector<int> v4 = transformVertex(vertex.at(f4), scaleFactor, translateFactor);
+		
+		drawLine(v1.at(0), v1.at(1), v2.at(0), v2.at(1));
+		drawLine(v2.at(0), v2.at(1), v3.at(0), v3.at(1));
+		drawLine(v3.at(0), v3.at(1), v4.at(0), v4.at(1));
+		drawLine(v4.at(0), v4.at(1), v1.at(0), v1.at(1));
+	}
+
+	delete obj;
+}
+
+vector<int> Render::transformVertex(vector<float> vec, int* scale, int* translate)
+{
+	vector<int> temp;
+	temp.push_back((int)((vec.at(0) * scale[0]) + translate[0]));
+	temp.push_back((int)((vec.at(1) * scale[1]) + translate[1]));
+	return temp;
 }

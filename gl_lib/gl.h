@@ -1,4 +1,5 @@
 #include "render.h"
+#include <string>
 
 void glInit();
 void glCreateWindow(int, int);
@@ -9,3 +10,4 @@ void glVertex(float, float);
 void glColor(float, float, float);
 void glFinish();
 void glLine(float, float, float, float);
+void glObject(string);

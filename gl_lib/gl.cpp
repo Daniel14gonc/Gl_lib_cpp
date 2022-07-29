@@ -50,3 +50,8 @@ void glLine(float x0, float y0, float x1, float y1)
 {
 	render->drawLine(x0, y0, x1, y1);
 }
+
+void glObject(string filename)
+{
+	render->readObj(filename);
+}
