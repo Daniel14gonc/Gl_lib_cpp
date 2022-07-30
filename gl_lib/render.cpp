@@ -350,15 +350,35 @@ void Render::readObj(string filename)
 	Obj* obj = new Obj(filename);
 	vector<vector<vector<int>>> faces = obj->getFaces();
 	vector<vector<float>> vertex = obj->getVertex();
-	int scaleFactor[2] = {50, 50};
-	int translateFactor[2] = {150, 150};
+	int scaleFactor[2] = {7, 7};
+	int translateFactor[2] = {750, 800};
 	for (vector<vector<int>> face : faces)
 	{
+		
+		vector<vector<int>> vec;
+		for (int i = 0; i < face.size(); i++)
+		{
+			int f = face.at(i).at(0) - 1;
+			vector<int> v = transformVertex(vertex.at(f), scaleFactor, translateFactor);
+			vec.push_back(v);
+		}
+
+		drawLine(vec.at(0).at(0), vec.at(0).at(1), vec.at(1).at(0), vec.at(1).at(1));
+		drawLine(vec.at(1).at(0), vec.at(1).at(1), vec.at(2).at(0), vec.at(2).at(1));
+
+		if (face.size() == 3)
+			drawLine(vec.at(2).at(0), vec.at(2).at(1), vec.at(0).at(0), vec.at(0).at(1));
+		else
+		{
+			drawLine(vec.at(2).at(0), vec.at(2).at(1), vec.at(3).at(0), vec.at(3).at(1));
+			drawLine(vec.at(3).at(0), vec.at(3).at(1), vec.at(0).at(0), vec.at(0).at(1));
+		}
+		
+		/*cout << face.size() << endl;
 		int f1 = face.at(0).at(0) - 1;
 		int f2 = face.at(1).at(0) - 1;
 		int f3 = face.at(2).at(0) - 1;
 		int f4 = face.at(3).at(0) - 1;
-
 		vector<int> v1 = transformVertex(vertex.at(f1), scaleFactor, translateFactor);
 		vector<int> v2 = transformVertex(vertex.at(f2), scaleFactor, translateFactor);
 		vector<int> v3 = transformVertex(vertex.at(f3), scaleFactor, translateFactor);
@@ -367,7 +387,7 @@ void Render::readObj(string filename)
 		drawLine(v1.at(0), v1.at(1), v2.at(0), v2.at(1));
 		drawLine(v2.at(0), v2.at(1), v3.at(0), v3.at(1));
 		drawLine(v3.at(0), v3.at(1), v4.at(0), v4.at(1));
-		drawLine(v4.at(0), v4.at(1), v1.at(0), v1.at(1));
+		drawLine(v4.at(0), v4.at(1), v1.at(0), v1.at(1));*/
 	}
 
 	delete obj;

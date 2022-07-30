@@ -18,14 +18,17 @@ Obj::Obj(string filename)
 		vector<string> line = specialSplit(text, ' ');
 		if (line.at(0) == "v")
 		{
+			// cout << line.at(1) << endl;
 			vertex.push_back(vertexToFLoat(line.at(1)));
 		}
 		if (line.at(0) == "f")
 		{
+			// cout << line.at(1) << endl;
 			faces.push_back(faceToInt(line.at(1)));
 		}
 	}
 
+	cout << faces.size() << endl;
 	// Close the file
 	file.close();
 }
@@ -69,7 +72,7 @@ vector<string> Obj::split(string& line, char delimeter)
 			v.push_back(temp);
 			temp = "";
 		}
-		else 
+		else
 		{
 			temp += line[i];
 		}
@@ -93,7 +96,7 @@ vector<string> Obj::specialSplit(string& line, char delimeter)
 			temp = "";
 			count += 1;
 		}
-		else 
+		else
 		{
 			temp += line[i];
 		}

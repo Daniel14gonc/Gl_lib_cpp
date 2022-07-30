@@ -7,8 +7,8 @@ using namespace std;
 int main()
 {
 	glInit();
-	glCreateWindow(400, 400);
-	glObject("cube2.obj");
+	glCreateWindow(1500, 1500);
+	glObject("spider.obj");
 	glFinish();
 	return 0;
 }
