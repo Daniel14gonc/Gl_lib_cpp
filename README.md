@@ -18,3 +18,7 @@ las gráficas creadas.
 ## Como ver la tarea de los polígonos
 1. Después de clonar el repositorio tienes que cambiarta a la branch de polygons con `git checkout polygons`.
 2. Ahora que estás en la branch polygons, solo corre `./run.sh` y dentro la carpeta `build` encontrarás la imagen.
+
+## Como ver la tarea de la carga de .obj
+1. Después de clonar el repositorio tienes que cambiarta a la branch de polygons con `git checkout objects`.
+2. Ahora que estás en la branch polygons, solo corre `./run.sh` y dentro la carpeta `build` encontrarás la imagen.
