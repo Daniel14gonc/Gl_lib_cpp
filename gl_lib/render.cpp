@@ -236,7 +236,7 @@ void Render::viewPort(int x, int y, int w, int h)
 
 void Render::drawLine(float a, float b, float c, float d)
 {
-	/*int *coordinates = calculatePosition(a, b);
+	int *coordinates = calculatePosition(a, b);
 	int x0 = coordinates[0];
 	int y0 = coordinates[1];
 	coordinates = calculatePosition(c, d);
@@ -288,7 +288,7 @@ void Render::drawLine(float a, float b, float c, float d)
 		}
 		if(steep) pointLine(x, y);
 		else pointLine(y, x);
-	}*/
+	}
 }
 
 void Render::drawLine(int a, int b, int c, int d)
@@ -373,21 +373,6 @@ void Render::readObj(string filename)
 			drawLine(vec.at(2).at(0), vec.at(2).at(1), vec.at(3).at(0), vec.at(3).at(1));
 			drawLine(vec.at(3).at(0), vec.at(3).at(1), vec.at(0).at(0), vec.at(0).at(1));
 		}
-		
-		/*cout << face.size() << endl;
-		int f1 = face.at(0).at(0) - 1;
-		int f2 = face.at(1).at(0) - 1;
-		int f3 = face.at(2).at(0) - 1;
-		int f4 = face.at(3).at(0) - 1;
-		vector<int> v1 = transformVertex(vertex.at(f1), scaleFactor, translateFactor);
-		vector<int> v2 = transformVertex(vertex.at(f2), scaleFactor, translateFactor);
-		vector<int> v3 = transformVertex(vertex.at(f3), scaleFactor, translateFactor);
-		vector<int> v4 = transformVertex(vertex.at(f4), scaleFactor, translateFactor);
-		
-		drawLine(v1.at(0), v1.at(1), v2.at(0), v2.at(1));
-		drawLine(v2.at(0), v2.at(1), v3.at(0), v3.at(1));
-		drawLine(v3.at(0), v3.at(1), v4.at(0), v4.at(1));
-		drawLine(v4.at(0), v4.at(1), v1.at(0), v1.at(1));*/
 	}
 
 	delete obj;
