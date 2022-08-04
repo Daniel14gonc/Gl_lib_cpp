@@ -3,6 +3,8 @@ add_library(gl_lib SHARED
 	gl.cpp
 	render.h
 	render.cpp
+	obj.h
+	obj.cpp
 )
 
 target_include_directories(gl_lib PUBLIC
