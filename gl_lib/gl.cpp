@@ -55,3 +55,13 @@ void glObject(string filename)
 {
 	render->readObj(filename);
 }
+
+void glLine(Vector3 a, Vector3 b)
+{
+	render->drawLine(a, b);
+}
+
+void glTriangle(Vector3 a, Vector3 b, Vector3 c)
+{
+	render->triangle(a, b, c);
+}

@@ -17,6 +17,9 @@ Render::Render()
 	color[2] = (unsigned char) (0);
 	color[1] = (unsigned char) (0);
 	color[0] = (unsigned char) (0); 
+
+	minZ = 9999;
+	maxZ = -99999;
 }
 
 void Render::startBuffer(int w, int h)
@@ -28,6 +31,9 @@ void Render::startBuffer(int w, int h)
 	{
 		frameBuffer[i] = new unsigned char* [width];
 	};
+
+	zBuffer = new float*[height];
+
 	x0 = 0;
 	y0 = 0;
 	widthV = w;
@@ -43,6 +49,15 @@ void Render::clear()
         	frameBuffer[i][j][2] = clearColor[2];
         	frameBuffer[i][j][1] = clearColor[1];
         	frameBuffer[i][j][0] = clearColor[0];
+        }
+    }
+
+	for (int i = 0; i < height; i++) 
+	{
+		zBuffer[i] = new float[width];
+        for (int j = 0; j < width; j++) 
+		{
+        	zBuffer[i][j] = -9999;
         }
     }
 }
@@ -96,9 +111,63 @@ int Render::write()
 
 
 	fclose(imageFile);
+	writeZBuffer();
 	// deleteMemory();
 	return 0;
 }
+
+void Render::writeZBuffer()
+{
+	// Define a padding size if width in bytes is not multiple of 4.
+	unsigned char padding[3] = {0, 0, 0};
+	int paddingSize = (4 - (width * 3) % 4) % 4;
+	int imgSize = width * height * 3;
+
+	// Define the new width with padding size.
+	int stride = (width*3) + paddingSize;
+	int fileSize = 14 + 40 + (height * stride);
+
+	// Get the byte array for the file header and size header.
+	unsigned char* fileHeader = createFileHeader(fileSize);
+	unsigned char* fileSizeH = createSizeHeader(width, height);
+
+	FILE* imageFile;
+	imageFile = fopen("zBuffer.bmp", "wb");
+
+	// Write the headers into file.
+	fwrite(fileHeader, 1, 14, imageFile);
+	fwrite(fileSizeH, 1, 40, imageFile);
+
+	unsigned char*** extraBuffer;
+	extraBuffer = new unsigned char** [height];
+	for(int i = 0; i < height; i++)
+	{
+		extraBuffer[i] = new unsigned char* [width];
+	};
+
+	for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+        	extraBuffer[i][j] = new unsigned char[3];
+			if (zBuffer[i][j] == -9999) zBuffer[i][j] = minZ;
+        	extraBuffer[i][j][2] = (unsigned char) (255 * ((zBuffer[i][j] - minZ) / (maxZ - minZ)));
+        	extraBuffer[i][j][1] = (unsigned char) (255 * ((zBuffer[i][j] - minZ) / (maxZ - minZ)));
+        	extraBuffer[i][j][0] = (unsigned char) (255 * ((zBuffer[i][j] - minZ) / (maxZ - minZ)));
+        }
+    }
+
+	// Write the image into the file.
+    for (int i = 0; i < height; i++) {
+    	for(int j = 0; j < width; j++)
+    	{
+    		fwrite((unsigned char*)extraBuffer[j][i], 3, 1, imageFile);
+    	}
+    	fwrite(padding, 1, paddingSize, imageFile);
+    }
+
+
+	fclose(imageFile);
+}
+
 
 unsigned char* Render::createFileHeader(int fileSize)
 {
@@ -345,43 +414,310 @@ void Render::drawLine(int a, int b, int c, int d)
 	}
 }
 
+void Render::drawLine(Vector3 a, Vector3 b)
+{
+	int x0 = a.getX();
+	int y0 = a.getY();
+	int x1 = b.getX();
+	int y1 = b.getY();
+
+	float dy = abs(y1 - y0);
+	float dx = abs(x1 - x0);
+
+	bool steep = dy > dx;
+
+	if (steep)
+	{
+		int temp = x0;
+		x0 = y0;
+		y0 = temp;
+		int temp2 = x1;
+		x1 = y1;
+		y1 = temp2;
+	}
+
+	if (x0 > x1)
+	{
+		int temp = x0;
+		int temp2 = y0;
+		x0 = x1;
+		x1 = temp;
+		y0 = y1;
+		y1 = temp2;
+	}
+
+	dy = abs(y1 - y0);
+	dx = abs(x1 - x0);
+
+	float offset = 0;
+	float threshold = dx * 2;
+	int y = y0;
+
+	for(int x = x0; x <= x1; x++)
+	{
+		offset += dy * 2;
+		if (steep) pointLine(x, y);
+		else pointLine(y, x);
+		if (offset >= threshold)
+		{
+			int up = -1;
+			if (y0 < y1) up = 1;
+			y += up;
+			threshold += 1 * dx * 2;
+		}
+	}
+}
+
 void Render::readObj(string filename)
 {
 	Obj* obj = new Obj(filename);
 	vector<vector<vector<int>>> faces = obj->getFaces();
 	vector<vector<float>> vertex = obj->getVertex();
-	int scaleFactor[2] = {7, 7};
-	int translateFactor[2] = {750, 800};
+	int scaleFactor[3] = {10, 10, 15};
+	int translateFactor[3] = {750, 800, 0};
 	for (vector<vector<int>> face : faces)
 	{
-		
-		vector<vector<int>> vec;
+		vector<Vector3> vec;
 		for (int i = 0; i < face.size(); i++)
 		{
 			int f = face.at(i).at(0) - 1;
-			vector<int> v = transformVertex(vertex.at(f), scaleFactor, translateFactor);
+			Vector3 v = transformVertex(vertex.at(f), scaleFactor, translateFactor);
 			vec.push_back(v);
 		}
 
-		drawLine(vec.at(0).at(0), vec.at(0).at(1), vec.at(1).at(0), vec.at(1).at(1));
-		drawLine(vec.at(1).at(0), vec.at(1).at(1), vec.at(2).at(0), vec.at(2).at(1));
+		if (face.size() == 4)
+		{
+			triangle(vec.at(0), vec.at(1), vec.at(2));
+			triangle(vec.at(2), vec.at(3), vec.at(0));
+			/*drawLine(vec.at(0).at(0), vec.at(0).at(1), vec.at(1).at(0), vec.at(1).at(1));
+			drawLine(vec.at(1).at(0), vec.at(1).at(1), vec.at(2).at(0), vec.at(2).at(1));
+			drawLine(vec.at(2).at(0), vec.at(2).at(1), vec.at(3).at(0), vec.at(3).at(1));
+			drawLine(vec.at(3).at(0), vec.at(3).at(1), vec.at(0).at(0), vec.at(0).at(1));*/
+		}
 
 		if (face.size() == 3)
-			drawLine(vec.at(2).at(0), vec.at(2).at(1), vec.at(0).at(0), vec.at(0).at(1));
-		else
 		{
-			drawLine(vec.at(2).at(0), vec.at(2).at(1), vec.at(3).at(0), vec.at(3).at(1));
-			drawLine(vec.at(3).at(0), vec.at(3).at(1), vec.at(0).at(0), vec.at(0).at(1));
+			triangle(vec.at(0), vec.at(1), vec.at(2));
 		}
 	}
 
 	delete obj;
 }
 
+Vector3 Render::transformVertex(vector<float> vec, int* scale, int* translate)
+{
+	Vector3 v (
+		(vec.at(0) * scale[0]) + translate[0],
+		(vec.at(1) * scale[1]) + translate[1],
+		(vec.at(2) * scale[2]) + translate[2]
+	);
+	return v;
+}
+
+ void Render::triangle(Vector3 a, Vector3 b, Vector3 c)
+ {
+	color[2] = (unsigned char) (rand() % 255);
+	color[1] = (unsigned char) (rand() % 255);
+	color[0] = (unsigned char) (rand() % 255);
+
+	Vector3 l = Vector3(0, 0, 1);
+	Vector3 n = (b - a) * (c - a);
+	float i = n.normalized().dot(l.normalized());
+	if (i < 0)
+		return;
+	color[2] = (unsigned char) (int) 255 * i;
+	color[1] = (unsigned char) (int) 255 * i;
+	color[0] = (unsigned char) (int) 255 * i;
+
+	int Acolor[3] = {255, 0, 0};
+	int Bcolor[3] = {0, 255, 0};
+	int Ccolor[3] = {0, 0, 255};
+
+	vector<Vector3> vec = boundingBox(a, b, c);
+	Vector3 min = vec.at(0);
+	Vector3 max = vec.at(1);
+	min.round();
+	max.round();
+	for (int x = (int) min.getX(); x <= (int) max.getX(); x++)
+		for (int y = (int) min.getY(); y <= (int) max.getY(); y++)
+		{
+			float* temp = barycentric(a, b, c, Vector3(x, y));
+			if (temp[0] >= 0 && temp[1] >= 0 && temp[2] >= 0)
+			{
+				float z = a.getZ() * temp[0] + b.getZ() * temp[1] + c.getZ() * temp[2];
+				if (zBuffer[x][y] < z)
+				{
+					zBuffer[x][y] = z;
+					pointLine(y, x);
+				}
+				if (z < minZ)
+					minZ = z;
+				if (z > maxZ)
+					maxZ = z;
+			}
+
+			/* color[2] = (unsigned char) Acolor[0] * temp[0] + Bcolor[0] * temp[1] + Ccolor[0] * temp[2];
+			color[1] = (unsigned char) Acolor[1] * temp[0] + Bcolor[1] * temp[1] + Ccolor[1] * temp[2];
+			color[0] = (unsigned char) Acolor[2] * temp[0] + Bcolor[2] * temp[1] + Ccolor[2] * temp[2]; */
+
+			delete temp;
+		}
+ }
+
+vector<Vector3> Render::boundingBox(Vector3 A, Vector3 B, Vector3 C)
+{
+	float coords[3][2] = {{A.getX(), A.getY()}, {B.getX(), B.getY()}, {C.getX(), C.getY()}};
+
+	float xmin = 999999.0f;
+	float xmax= -999999.0f;
+	float ymin = 999999.0f;
+	float ymax = -999999.0f;
+
+	for (int i = 0; i < 3; i++)
+	{
+		if (coords[i][0] < xmin)
+			xmin = coords[i][0];
+		if (coords[i][0] > xmax)
+			xmax = coords[i][0];
+		if (coords[i][1] < ymin)
+			ymin = coords[i][1];
+		if (coords[i][1] > ymax)
+			ymax = coords[i][1];
+	}
+
+	vector<Vector3> res;
+	res.push_back(Vector3(xmin, ymin));
+	res.push_back(Vector3(xmax, ymax));
+	return res;
+}
+
+float* Render::cross(Vector3 a, Vector3 b)
+{
+	float* res = new float[3];
+	res[0] = a.getY() * b.getZ() - a.getZ() * b.getY();
+	res[1] = a.getZ() * b.getX() - a.getX() * b.getZ();
+	res[2] = a.getX() * b.getY() - a.getY() * b.getX();
+	return res;
+}
+
+float* Render::barycentric(Vector3 A, Vector3 B, Vector3 C, Vector3 P)
+{
+	float* crs = cross(
+		Vector3(B.getX() - A.getX(), C.getX() - A.getX(), A.getX() - P.getX()),
+		Vector3(B.getY() - A.getY(), C.getY() - A.getY(), A.getY() - P.getY())
+	);
+
+	float u = crs[0] / crs[2];
+	float v = crs[1] / crs[2];
+	float w = 1.0f - (u + v);
+
+	delete crs;
+
+	float* res = new float[3];
+	res[0] = w;
+	res[1] = v;
+	res[2] = u;
+	return res;
+}
+
+/*
 vector<int> Render::transformVertex(vector<float> vec, int* scale, int* translate)
 {
+	Vector3 v (
+		(vec.at(0) * scale[0]) + translate[0],
+		(vec.at(1) * scale[1]) + translate[1]
+	)
+	
 	vector<int> temp;
 	temp.push_back((int)((vec.at(0) * scale[0]) + translate[0]));
 	temp.push_back((int)((vec.at(1) * scale[1]) + translate[1]));
+	
 	return temp;
-}
+}*/
+
+/*void Render::triangle(Vector3 a, Vector3 b, Vector3 c)
+{
+	drawLine(a, b);
+	drawLine(b, c);
+	drawLine(c, a);
+
+	a.round();
+	b.round();
+	c.round();
+
+	color[2] = (unsigned char) (rand() % 255);
+	color[1] = (unsigned char) (rand() % 255);
+	color[0] = (unsigned char) (rand() % 255);
+
+	if (a.getY() > b.getY())
+	{
+		Vector3 temp = a;
+		a = b;
+		b = temp;
+	}
+
+	if(a.getY() > c.getY())
+	{
+		Vector3 temp = a;
+		a = c;
+		c = temp;
+	}
+
+	if(b.getY() > c.getY())
+	{
+		Vector3 temp = b;
+		b = c;
+		c = temp;
+	}
+
+	float dx_ac = c.getX() - a.getX();
+	float dy_ac = c.getY() - a.getY();
+	if (dy_ac == 0)
+		return;
+	float m_ac = dx_ac / dy_ac;
+
+	float dx_ab = b.getX() - a.getX();
+	float dy_ab = b.getY() - a.getY();
+	if (dy_ab != 0)
+	{
+		float m_ab = dx_ab / dy_ab;
+		for (int y = (int) a.getY(); y <= (int) b.getY(); y++)
+		{
+			float x0 = a.getX() - m_ac * (a.getY() - y);
+			float xf = a.getX() - m_ab * (a.getY() - y);
+			if (x0 > xf)
+			{
+				float temp = x0;
+				x0 = xf;
+				xf = temp;
+			}
+			for (int x = (int) x0; x <= (int) xf; x++)
+			{
+				pointLine(y, x);
+			}
+		}
+	}
+
+	float dx_bc = c.getX() - b.getX();
+	float dy_bc = c.getY() - b.getY();
+	if (dy_bc != 0)
+	{
+		float m_bc = dx_bc / dy_bc;
+		for (int y = (int) b.getY(); y < (int) c.getY(); y++)
+		{
+			float x0 = a.getX() - m_ac * (a.getY() - y);
+			float xf = b.getX() - m_bc * (b.getY() - y);
+			if (x0 > xf)
+			{
+				float temp = x0;
+				x0 = xf;
+				xf = temp;
+			}
+			for (int x = (int) x0; x <= (int) xf; x++)
+			{
+				pointLine(y, x);
+			}
+		}
+	}
+}*/
+

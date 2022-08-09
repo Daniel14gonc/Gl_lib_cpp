@@ -1,5 +1,6 @@
 #include <string>
 #include "obj.h"
+#include "vector3.h"
 
 using namespace std;
 
@@ -10,15 +11,22 @@ class Render
 		int widthV, heightV;
 		int width;
 		int height;
+		float maxZ;
+		float minZ;
 		unsigned char* clearColor;
 		unsigned char* color;
 		unsigned char*** frameBuffer;
+		float** zBuffer;
 		unsigned char* createFileHeader(int fileSize);
 		unsigned char* createSizeHeader(int, int);
 		void deleteMemory();
 		int* calculatePosition(float, float);
 		void pointLine(int, int);
-		vector<int> transformVertex(vector<float>, int*, int*);
+		Vector3 transformVertex(vector<float>, int*, int*);
+		float* barycentric(Vector3, Vector3, Vector3, Vector3);
+		vector<Vector3> boundingBox(Vector3, Vector3, Vector3);
+		float* cross(Vector3, Vector3);
+		void writeZBuffer();
 
 	public:
 		Render();
@@ -31,5 +39,7 @@ class Render
 		void viewPort(int, int, int, int);
 		void drawLine(float, float, float, float);
 		void drawLine(int, int, int, int);
+		void drawLine(Vector3, Vector3);
 		void readObj(string);
+		void triangle(Vector3, Vector3, Vector3);
 };

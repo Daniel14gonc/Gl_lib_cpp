@@ -10,4 +10,6 @@ void glVertex(float, float);
 void glColor(float, float, float);
 void glFinish();
 void glLine(float, float, float, float);
+void glLine(Vector3, Vector3);
 void glObject(string);
+void glTriangle(Vector3, Vector3, Vector3);

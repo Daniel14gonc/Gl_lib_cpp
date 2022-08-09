@@ -12,7 +12,16 @@ class Vector3
 
 	public:
         float* getCoordinates();
-		Vector3(float, float, float);
+		
+        Vector3(float, float, float);
+        
+        Vector3(float, float);
+
+        float getX();
+
+        float getY();
+        
+        float getZ();
 
         // Sum of arrays
         Vector3 operator+(Vector3);
@@ -35,4 +44,6 @@ class Vector3
         Vector3 normalized();
         
         string to_string();
+
+        void round();
 };

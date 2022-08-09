@@ -8,7 +8,7 @@ int main()
 {
 	glInit();
 	glCreateWindow(1500, 1500);
-	glObject("spider.obj");
+	glObject("face.obj");
 	glFinish();
 	return 0;
 }
