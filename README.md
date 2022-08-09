@@ -22,3 +22,8 @@ las gráficas creadas.
 ## Como ver la tarea de la carga de .obj
 1. Después de clonar el repositorio tienes que cambiarta a la branch de polygons con `git checkout objects`.
 2. Ahora que estás en la branch polygons, solo corre `./run.sh` y dentro la carpeta `build` encontrarás la imagen.
+
+## Como ver la tarea de la carga de .obj
+1. Después de clonar el repositorio tienes que cambiarta a la branch de polygons con `git checkout fill_obj`.
+2. Ahora que estás en la branch polygons, solo corre `./run.sh`.
+2. Dentro la carpeta `build` encontrarás `image.bmp` y `zBuffer.bmp`. La primera imagen es el .obj renderizado y la otra es el zBuffer renderizado.
