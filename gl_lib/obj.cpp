@@ -18,13 +18,15 @@ Obj::Obj(string filename)
 		vector<string> line = specialSplit(text, ' ');
 		if (line.at(0) == "v")
 		{
-			// cout << line.at(1) << endl;
 			vertex.push_back(vertexToFLoat(line.at(1)));
 		}
 		if (line.at(0) == "f")
 		{
-			// cout << line.at(1) << endl;
 			faces.push_back(faceToInt(line.at(1)));
+		}
+		if (line.at(0) == "vt")
+		{
+			vt.push_back(vertexToFLoat(line.at(1)));
 		}
 	}
 
@@ -113,4 +115,9 @@ vector<vector<vector<int>>> Obj::getFaces()
 vector<vector<float>> Obj::getVertex()
 {
 	return vertex;
+}
+
+vector<vector<float>> Obj::getVt()
+{
+	return vt;
 }

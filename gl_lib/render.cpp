@@ -41,6 +41,19 @@ void Render::startBuffer(int w, int h)
 	clear();
 }
 
+void Render::setBuffer(unsigned char*** buffer)
+{
+	for (int i = 0; i < height; i++)
+	{
+		for (int j = 0; j < width; j++)
+		{
+			frameBuffer[i][j][2] = buffer[i][j][2];
+			frameBuffer[i][j][1] = buffer[i][j][1];
+			frameBuffer[i][j][0] = buffer[i][j][0];
+		}
+	}
+}
+
 void Render::clear()
 {
 	for (int i = 0; i < height; i++) {
@@ -76,7 +89,7 @@ void Render::changeClearColor(float r, float g, float b)
 	clearColor[0] = (int)(b*255);
 }
 
-int Render::write()
+int Render::write(string path)
 {
 
 	// Define a padding size if width in bytes is not multiple of 4.
@@ -93,7 +106,10 @@ int Render::write()
 	unsigned char* fileSizeH = createSizeHeader(width, height);
 
 	FILE* imageFile;
-	imageFile = fopen("image.bmp", "wb");
+	char* src = new char[path.length()];
+    
+    for (int i = 0; i < path.length(); i++) src[i] = path.at(i);
+	imageFile = fopen(src, "wb");
 
 	// Write the headers into file.
 	fwrite(fileHeader, 1, 14, imageFile);
@@ -111,7 +127,7 @@ int Render::write()
 
 
 	fclose(imageFile);
-	writeZBuffer();
+	// writeZBuffer();
 	// deleteMemory();
 	return 0;
 }
@@ -268,11 +284,12 @@ void Render::point(float x, float y)
 
 void Render::pointLine(int x, int y)
 {
+	// cout << y << ' ' << width << endl;
 	if (x < width && y < height && x  >= 0 && y >= 0)
 	{
-		frameBuffer[x][y][2] = color[2];
-		frameBuffer[x][y][1] = color[1];
-		frameBuffer[x][y][0] = color[0];
+		frameBuffer[y][x][2] = color[2];
+		frameBuffer[y][x][1] = color[1];
+		frameBuffer[y][x][0] = color[0];
 	}
 }
 
@@ -308,10 +325,10 @@ void Render::drawLine(float a, float b, float c, float d)
 	int *coordinates = calculatePosition(a, b);
 	int x0 = coordinates[0];
 	int y0 = coordinates[1];
-	coordinates = calculatePosition(c, d);
-	int x1 = coordinates[0];
-	int y1 = coordinates[1];
-	delete[] coordinates;
+	int *coordinates2 = calculatePosition(c, d);
+	int x1 = coordinates2[0];
+	int y1 = coordinates2[1];
+	// delete[] coordinates;
 
 	float dy = abs(y1 - y0);
 	float dx = abs(x1 - x0);
@@ -344,6 +361,7 @@ void Render::drawLine(float a, float b, float c, float d)
 	float offset = 0;
 	float threshold = dx * 2;
 	int y = y0;
+	cout << y0 << endl;
 
 	for(int x = x0; x <= x1; x++)
 	{
@@ -452,12 +470,13 @@ void Render::drawLine(Vector3 a, Vector3 b)
 	float offset = 0;
 	float threshold = dx * 2;
 	int y = y0;
-
+	// cout << x1 << endl;
 	for(int x = x0; x <= x1; x++)
 	{
+		// cout << x << ' ' << y << endl;
 		offset += dy * 2;
-		if (steep) pointLine(x, y);
-		else pointLine(y, x);
+		if (steep) pointLine(y, x);
+		else pointLine(x, y);
 		if (offset >= threshold)
 		{
 			int up = -1;
@@ -473,31 +492,65 @@ void Render::readObj(string filename)
 	Obj* obj = new Obj(filename);
 	vector<vector<vector<int>>> faces = obj->getFaces();
 	vector<vector<float>> vertex = obj->getVertex();
-	int scaleFactor[3] = {10, 10, 15};
+	vector<vector<float>> vt = obj->getVt();
+	int scaleFactor[3] = {1, 1, 1};
 	int translateFactor[3] = {750, 800, 0};
 	for (vector<vector<int>> face : faces)
 	{
 		vector<Vector3> vec;
+		vector<Vector3> vect;
 		for (int i = 0; i < face.size(); i++)
 		{
 			int f = face.at(i).at(0) - 1;
 			Vector3 v = transformVertex(vertex.at(f), scaleFactor, translateFactor);
 			vec.push_back(v);
+			int f1 = face.at(i).at(1) - 1;
+			Vector3 vt1(vt.at(f1).at(0), vt.at(f1).at(1));
+			vect.push_back(vt1);
 		}
 
 		if (face.size() == 4)
 		{
-			triangle(vec.at(0), vec.at(1), vec.at(2));
-			triangle(vec.at(2), vec.at(3), vec.at(0));
-			/*drawLine(vec.at(0).at(0), vec.at(0).at(1), vec.at(1).at(0), vec.at(1).at(1));
-			drawLine(vec.at(1).at(0), vec.at(1).at(1), vec.at(2).at(0), vec.at(2).at(1));
-			drawLine(vec.at(2).at(0), vec.at(2).at(1), vec.at(3).at(0), vec.at(3).at(1));
-			drawLine(vec.at(3).at(0), vec.at(3).at(1), vec.at(0).at(0), vec.at(0).at(1));*/
+			if (texture != NULL)
+			{
+				vector<Vector3> v1;
+				vector<Vector3> vt2;
+				v1.push_back(vec.at(0));
+				v1.push_back(vec.at(1));
+				v1.push_back(vec.at(2));
+
+				vt2.push_back(vect.at(0));
+				vt2.push_back(vect.at(1));
+				vt2.push_back(vect.at(2));
+				triangle(v1, vt2);
+
+				v1.clear(); vt2.clear();
+				v1.push_back(vec.at(2));
+				v1.push_back(vec.at(3));
+				v1.push_back(vec.at(0));
+
+				vt2.push_back(vect.at(2));
+				vt2.push_back(vect.at(3));
+				vt2.push_back(vect.at(0));
+				triangle(v1, vt2);
+			}
+			else
+			{
+				triangle(vec.at(0), vec.at(1), vec.at(2));
+				triangle(vec.at(2), vec.at(3), vec.at(0));
+			}
 		}
 
 		if (face.size() == 3)
 		{
-			triangle(vec.at(0), vec.at(1), vec.at(2));
+			if (texture != NULL)
+			{
+				triangle(vec, vect);
+			}
+			else
+			{
+				triangle(vec.at(0), vec.at(1), vec.at(2));
+			}
 		}
 	}
 
@@ -514,8 +567,75 @@ Vector3 Render::transformVertex(vector<float> vec, int* scale, int* translate)
 	return v;
 }
 
- void Render::triangle(Vector3 a, Vector3 b, Vector3 c)
- {
+void Render::triangle(vector<Vector3> vertices, vector<Vector3> vt)
+{
+	Vector3 a = vertices.at(0);
+	Vector3 b = vertices.at(1);
+	Vector3 c = vertices.at(2);
+	Vector3 tA = vt.at(0);
+	Vector3 tB = vt.at(1);
+	Vector3 tC = vt.at(2);
+
+	color[2] = (unsigned char) (rand() % 255);
+	color[1] = (unsigned char) (rand() % 255);
+	color[0] = (unsigned char) (rand() % 255);
+
+	Vector3 l = Vector3(0, 0, 1);
+	Vector3 n = (b - a) * (c - a);
+	float i = n.normalized().dot(l.normalized());
+	if (i < 0)
+		return;
+	color[2] = (unsigned char) (int) 255 * i;
+	color[1] = (unsigned char) (int) 255 * i;
+	color[0] = (unsigned char) (int) 255 * i;
+
+	int Acolor[3] = {255, 0, 0};
+	int Bcolor[3] = {0, 255, 0};
+	int Ccolor[3] = {0, 0, 255};
+
+	vector<Vector3> vec = boundingBox(a, b, c);
+	Vector3 min = vec.at(0);
+	Vector3 max = vec.at(1);
+	min.round();
+	max.round();
+	for (int x = (int) min.getX(); x <= (int) max.getX(); x++)
+		for (int y = (int) min.getY(); y <= (int) max.getY(); y++)
+		{
+			float* temp = barycentric(a, b, c, Vector3(x, y));
+			float w = temp[0]; float v = temp[1]; float u = temp[2];
+			if (temp[0] >= 0 && temp[1] >= 0 && temp[2] >= 0)
+			{
+				float z = a.getZ() * temp[0] + b.getZ() * temp[1] + c.getZ() * temp[2];
+				if (zBuffer[x][y] < z)
+				{
+					float tx = tA.getX() * w + tB.getX() * u + tC.getX() * v;
+					float ty = tA.getY() * w + tB.getY() * u + tC.getY() * v;
+					unsigned char* col = texture->getColorIntensity(tx, ty, i);
+					color[0] = col[0];
+					color[1] = col[1];
+					color[2] = col[2];
+					zBuffer[x][y] = z;
+					pointLine(x, y);
+				}
+				if (z < minZ)
+					minZ = z;
+				if (z > maxZ)
+					maxZ = z;
+			}
+
+			/* color[2] = (unsigned char) Acolor[0] * temp[0] + Bcolor[0] * temp[1] + Ccolor[0] * temp[2];
+			color[1] = (unsigned char) Acolor[1] * temp[0] + Bcolor[1] * temp[1] + Ccolor[1] * temp[2];
+			color[0] = (unsigned char) Acolor[2] * temp[0] + Bcolor[2] * temp[1] + Ccolor[2] * temp[2]; */
+
+			delete temp;
+		}
+}
+
+void Render::triangle(vector<Vector3> vertices)
+{
+	Vector3 a = vertices.at(0);
+	Vector3 b = vertices.at(1);
+	Vector3 c = vertices.at(2);
 	color[2] = (unsigned char) (rand() % 255);
 	color[1] = (unsigned char) (rand() % 255);
 	color[0] = (unsigned char) (rand() % 255);
@@ -548,7 +668,7 @@ Vector3 Render::transformVertex(vector<float> vec, int* scale, int* translate)
 				if (zBuffer[x][y] < z)
 				{
 					zBuffer[x][y] = z;
-					pointLine(y, x);
+					pointLine(x, y);
 				}
 				if (z < minZ)
 					minZ = z;
@@ -562,7 +682,57 @@ Vector3 Render::transformVertex(vector<float> vec, int* scale, int* translate)
 
 			delete temp;
 		}
- }
+}
+
+void Render::triangle(Vector3 a, Vector3 b, Vector3 c)
+{
+	color[2] = (unsigned char) (rand() % 255);
+	color[1] = (unsigned char) (rand() % 255);
+	color[0] = (unsigned char) (rand() % 255);
+
+	Vector3 l = Vector3(0, 0, 1);
+	Vector3 n = (b - a) * (c - a);
+	float i = n.normalized().dot(l.normalized());
+	if (i < 0)
+		return;
+	color[2] = (unsigned char) (int) 255 * i;
+	color[1] = (unsigned char) (int) 255 * i;
+	color[0] = (unsigned char) (int) 255 * i;
+
+	int Acolor[3] = {255, 0, 0};
+	int Bcolor[3] = {0, 255, 0};
+	int Ccolor[3] = {0, 0, 255};
+
+	vector<Vector3> vec = boundingBox(a, b, c);
+	Vector3 min = vec.at(0);
+	Vector3 max = vec.at(1);
+	min.round();
+	max.round();
+	for (int x = (int) min.getX(); x <= (int) max.getX(); x++)
+		for (int y = (int) min.getY(); y <= (int) max.getY(); y++)
+		{
+			float* temp = barycentric(a, b, c, Vector3(x, y));
+			if (temp[0] >= 0 && temp[1] >= 0 && temp[2] >= 0)
+			{
+				float z = a.getZ() * temp[0] + b.getZ() * temp[1] + c.getZ() * temp[2];
+				if (zBuffer[x][y] < z)
+				{
+					zBuffer[x][y] = z;
+					pointLine(x, y);
+				}
+				if (z < minZ)
+					minZ = z;
+				if (z > maxZ)
+					maxZ = z;
+			}
+
+			/* color[2] = (unsigned char) Acolor[0] * temp[0] + Bcolor[0] * temp[1] + Ccolor[0] * temp[2];
+			color[1] = (unsigned char) Acolor[1] * temp[0] + Bcolor[1] * temp[1] + Ccolor[1] * temp[2];
+			color[0] = (unsigned char) Acolor[2] * temp[0] + Bcolor[2] * temp[1] + Ccolor[2] * temp[2]; */
+
+			delete temp;
+		}
+}
 
 vector<Vector3> Render::boundingBox(Vector3 A, Vector3 B, Vector3 C)
 {
@@ -618,6 +788,41 @@ float* Render::barycentric(Vector3 A, Vector3 B, Vector3 C, Vector3 P)
 	res[1] = v;
 	res[2] = u;
 	return res;
+}
+
+void Render::setTexture(string path)
+{
+	texture = new Texture(path);
+	 //width = texture->getWidth();
+	 //height = texture->getHeight();
+}
+
+void Render::map()
+{
+	startBuffer(texture->getWidth(), texture->getHeight());
+    Obj obj("earth.obj");
+    vector<vector<vector<int>>> faces = obj.getFaces();
+    vector<vector<float>> vts = obj.getVt();
+    changeColor(1, 1, 1);
+    setBuffer(texture->getPixels());
+    for (vector<vector<int>> f : faces)
+    {
+        if(f.size() == 3)
+        {
+            int f1 = f.at(0).at(1) - 1;
+            int f2 = f.at(1).at(1) - 1;
+            int f3 = f.at(2).at(1) - 1;
+
+            Vector3 vt1(vts.at(f1).at(0) * width, vts.at(f1).at(1) * height);
+            Vector3 vt2(vts.at(f2).at(0) * width, vts.at(f2).at(1) * height);
+            Vector3 vt3(vts.at(f3).at(0) * width, vts.at(f3).at(1) * height);
+
+            drawLine(vt1, vt2);
+            drawLine(vt2, vt1);
+            drawLine(vt3, vt1);
+        }
+    }
+    write("map.bmp");
 }
 
 /*

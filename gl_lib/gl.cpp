@@ -65,3 +65,14 @@ void glTriangle(Vector3 a, Vector3 b, Vector3 c)
 {
 	render->triangle(a, b, c);
 }
+
+void glMap(string path)
+{
+	render->setTexture(path);
+	render->map();
+}
+
+void glTexture(string path)
+{
+	render->setTexture(path);
+}
