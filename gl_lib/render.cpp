@@ -493,12 +493,13 @@ void Render::readObj(string filename)
 	vector<vector<vector<int>>> faces = obj->getFaces();
 	vector<vector<float>> vertex = obj->getVertex();
 	vector<vector<float>> vt = obj->getVt();
-	int scaleFactor[3] = {1, 1, 1};
-	int translateFactor[3] = {750, 800, 0};
+	float scaleFactor[3] = {5, 5, 3};
+	int translateFactor[3] = {700, 400, 0};
 	for (vector<vector<int>> face : faces)
 	{
 		vector<Vector3> vec;
 		vector<Vector3> vect;
+		// cout << face.size() << endl;	
 		for (int i = 0; i < face.size(); i++)
 		{
 			int f = face.at(i).at(0) - 1;
@@ -557,7 +558,7 @@ void Render::readObj(string filename)
 	delete obj;
 }
 
-Vector3 Render::transformVertex(vector<float> vec, int* scale, int* translate)
+Vector3 Render::transformVertex(vector<float> vec, float* scale, int* translate)
 {
 	Vector3 v (
 		(vec.at(0) * scale[0]) + translate[0],
@@ -800,13 +801,33 @@ void Render::setTexture(string path)
 void Render::map()
 {
 	startBuffer(texture->getWidth(), texture->getHeight());
-    Obj obj("earth.obj");
+    Obj obj("droid.obj");
     vector<vector<vector<int>>> faces = obj.getFaces();
     vector<vector<float>> vts = obj.getVt();
     changeColor(1, 1, 1);
     setBuffer(texture->getPixels());
     for (vector<vector<int>> f : faces)
     {
+		if (f.size() == 4)
+		{
+			int f1 = f.at(0).at(1) - 1;
+            int f2 = f.at(1).at(1) - 1;
+            int f3 = f.at(2).at(1) - 1;
+			int f4 = f.at(3).at(1) - 1;
+
+            Vector3 vt1(vts.at(f1).at(0) * width, vts.at(f1).at(1) * height);
+            Vector3 vt2(vts.at(f2).at(0) * width, vts.at(f2).at(1) * height);
+            Vector3 vt3(vts.at(f3).at(0) * width, vts.at(f3).at(1) * height);
+			Vector3 vt4(vts.at(f4).at(0) * width, vts.at(f3).at(1) * height);
+
+            drawLine(vt1, vt2);
+            drawLine(vt2, vt1);
+            drawLine(vt3, vt1);
+
+			drawLine(vt2, vt3);
+            drawLine(vt3, vt4);
+            drawLine(vt4, vt2);
+		}
         if(f.size() == 3)
         {
             int f1 = f.at(0).at(1) - 1;

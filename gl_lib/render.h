@@ -24,7 +24,7 @@ class Render
 		void deleteMemory();
 		int* calculatePosition(float, float);
 		void pointLine(int, int);
-		Vector3 transformVertex(vector<float>, int*, int*);
+		Vector3 transformVertex(vector<float>, float*, int*);
 		float* barycentric(Vector3, Vector3, Vector3, Vector3);
 		vector<Vector3> boundingBox(Vector3, Vector3, Vector3);
 		float* cross(Vector3, Vector3);

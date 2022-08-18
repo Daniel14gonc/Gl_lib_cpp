@@ -22,6 +22,8 @@ void Texture::read()
     width = *(int*)&info[18];
     height = *(int*)&info[22];
 
+    if (height < 0) height = height * -1;
+
     unsigned char info2[headerSize - 54];
     fread(info2, sizeof(unsigned char), headerSize - 54, imageFile); 
 
@@ -44,11 +46,6 @@ void Texture::read()
 	int paddingSize = (4 - (width * 3) % 4) % 4;
     for(i = 0; i < size; i += 3)
     {
-        /*unsigned char tmp = data[i];
-        unsigned char tmp2 = data[i + 1];
-        data[i] = data[i+2];
-        data[i+1] = tmp;
-        data[i+2] = tmp2;*/
 
         pixels[y][x] = new unsigned char[3];
         pixels[y][x][0] = data[i];
@@ -63,7 +60,6 @@ void Texture::read()
         }
         x = x % width;
     }
-    cout << x << ' ' << y << endl;
 }
 
 unsigned char* Texture::getColor(float tx, float ty)

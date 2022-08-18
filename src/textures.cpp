@@ -7,10 +7,10 @@ using namespace std;
 int main()
 {
 	glInit();
-	glMap("earth.bmp");
+	glMap("dr.bmp");
 	glCreateWindow(1500, 1500);
-	glTexture("earth.bmp");
-	glObject("earth.obj");
+	glTexture("dr.bmp");
+	glObject("droid.obj");
 	glFinish();
 	return 0;
 }

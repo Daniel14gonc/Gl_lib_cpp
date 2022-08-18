@@ -15,23 +15,25 @@ Obj::Obj(string filename)
 	// Use a while loop together with the getline() function to read the file line by line
 	while (getline (file, text)) 
 	{
-		vector<string> line = specialSplit(text, ' ');
-		if (line.at(0) == "v")
+		//cout << text << endl;
+		if (text.size() > 0 && text.at(0) != ' ' && text.at(0) != '#')
 		{
-			vertex.push_back(vertexToFLoat(line.at(1)));
-		}
-		if (line.at(0) == "f")
-		{
-			faces.push_back(faceToInt(line.at(1)));
-		}
-		if (line.at(0) == "vt")
-		{
-			vt.push_back(vertexToFLoat(line.at(1)));
-		}
+			vector<string> line = specialSplit(text, ' ');
+			if (line.at(0) == "v")
+			{
+				vertex.push_back(vertexToFLoat(line.at(1)));
+			}
+			if (line.at(0) == "f")
+			{
+				faces.push_back(faceToInt(line.at(1)));
+			}
+			if (line.at(0) == "vt")
+			{
+				vt.push_back(vertexToFLoat(line.at(1)));
+			}
+		}	
 	}
 
-	cout << faces.size() << endl;
-	// Close the file
 	file.close();
 }
 
@@ -43,12 +45,23 @@ vector<vector<int>> Obj::faceToInt(string faces)
 	{
 		vector<int> face;
 		vector<string> numbers = split(i, '/');
-		for (string j : numbers)
+		if (numbers.size() > 1)
 		{
-			face.push_back(stoi(j));
+			// cout << numbers.size() << endl;
+			for (string j : numbers)
+			{
+				//cout << j << '/';
+				if (j != " " && j != "" && !j.empty())
+				{
+					face.push_back(stoi(j));
+				}
+			}
+			//cout << endl;
 		}
-		res.push_back(face);
+		if (face.size() != 0)
+			res.push_back(face);
 	}
+	//cout << res.size() << endl;
 	return res;
 }
 
@@ -58,7 +71,8 @@ vector<float> Obj::vertexToFLoat(string vertex)
 	vector<float> res;
 	for (string i : temp)
 	{
-		res.push_back(stof(i));
+		if (i != " " && i != "")
+			res.push_back(stof(i));
 	}
 	return res;
 } 
@@ -100,7 +114,13 @@ vector<string> Obj::specialSplit(string& line, char delimeter)
 		}
 		else
 		{
-			temp += line[i];
+			if (i + 1 == line.length())
+			{
+				if (isdigit(line[i]))
+					temp += line[i];
+			}
+			else
+				temp += line[i];
 		}
 	}
 	v.push_back(temp);
