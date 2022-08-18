@@ -7,6 +7,8 @@ add_library(gl_lib SHARED
 	obj.cpp
 	vector3.h
 	vector3.cpp
+	texture.h
+	texture.cpp
 )
 
 target_include_directories(gl_lib PUBLIC

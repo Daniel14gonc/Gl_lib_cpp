@@ -8,6 +8,7 @@ class Obj
 	private:
 		vector<vector<vector<int>>> faces;
 		vector<vector<float>> vertex;
+		vector<vector<float>> vt;
 		void read();
 		vector<string> specialSplit(string&, char);
 		vector<string> split(string&, char);
@@ -19,4 +20,5 @@ class Obj
 		float*** getVertices();
 		vector<vector<vector<int>>> getFaces();
 		vector<vector<float>> getVertex();
+		vector<vector<float>> getVt();
 };

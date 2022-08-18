@@ -13,3 +13,5 @@ void glLine(float, float, float, float);
 void glLine(Vector3, Vector3);
 void glObject(string);
 void glTriangle(Vector3, Vector3, Vector3);
+void glMap(string);
+void glTexture(string);
