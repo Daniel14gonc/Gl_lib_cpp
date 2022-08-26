@@ -2,6 +2,7 @@
 #include "obj.h"
 #include "vector3.h"
 #include "texture.h"
+#include <queue>
 
 using namespace std;
 
@@ -14,7 +15,8 @@ class Render
 		int height;
 		float maxZ;
 		float minZ;
-		Texture* texture;
+		Texture* activeTexture;
+		Vector3* l;
 		unsigned char* clearColor;
 		unsigned char* color;
 		unsigned char*** frameBuffer;
@@ -29,6 +31,8 @@ class Render
 		vector<Vector3> boundingBox(Vector3, Vector3, Vector3);
 		float* cross(Vector3, Vector3);
 		void writeZBuffer();
+		queue<Vector3> activeVertexArray;
+		void draw();
 
 	public:
 		Render();
@@ -43,10 +47,12 @@ class Render
 		void drawLine(float, float, float, float);
 		void drawLine(int, int, int, int);
 		void drawLine(Vector3, Vector3);
+		void readObj(string, float*, int*);
 		void readObj(string);
 		void triangle(Vector3, Vector3, Vector3);
 		void triangle(vector<Vector3>);
 		void triangle(vector<Vector3>, vector<Vector3>);
+		void triangle();
 		void map();
 		void setTexture(string);
 };

@@ -10,6 +10,8 @@ add_library(gl_lib SHARED
 	texture.h
 	texture.cpp
 	matrix.hpp
+	vector4.h
+	vector4.cpp
 )
 
 target_include_directories(gl_lib PUBLIC

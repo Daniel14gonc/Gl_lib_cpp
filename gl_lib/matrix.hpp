@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector4.h>
 
 using namespace std;
 
@@ -12,7 +13,6 @@ struct Matrix
 	
 	Matrix<N, M> operator * (Matrix other)
 	{
-		float x[N][M];
 		Matrix<N, M> m;
 		for (int i = 0; i < N; i++)
 		{
@@ -24,6 +24,24 @@ struct Matrix
 					res += this->getElement(i, k) * other.getElement(k, j);
 				}
 				m.setElement(i, j, res);
+			}
+		}
+		return m;
+	}
+
+	Vector4 operator * (Vector4 other)
+	{
+		Vector4 m;
+		for (int i = 0; i < N; i++)
+		{
+			for(int j = 0; j < N; j++)
+			{
+				float res = 0;
+				for(int k = 0; k < M; k++)
+				{
+					res += this->getElement(i, k) * other.getElement(k);
+				}
+				m.setElement(i, res);
 			}
 		}
 		return m;

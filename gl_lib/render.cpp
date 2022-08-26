@@ -20,6 +20,7 @@ Render::Render()
 
 	minZ = 9999;
 	maxZ = -99999;
+	l = new Vector3(0, 0, 1);
 }
 
 void Render::startBuffer(int w, int h)
@@ -487,6 +488,79 @@ void Render::drawLine(Vector3 a, Vector3 b)
 	}
 }
 
+void Render::readObj(string filename, float* scale, int* translate)
+{
+	Obj* obj = new Obj(filename);
+	vector<vector<vector<int>>> faces = obj->getFaces();
+	vector<vector<float>> vertex = obj->getVertex();
+	vector<vector<float>> vt = obj->getVt();
+	float scaleFactor[3] = {5, 5, 3};
+	int translateFactor[3] = {700, 400, 0};
+	for (vector<vector<int>> face : faces)
+	{
+		vector<Vector3> vec;
+		vector<Vector3> vect;
+		// cout << face.size() << endl;	
+		for (int i = 0; i < face.size(); i++)
+		{
+			int f = face.at(i).at(0) - 1;
+			Vector3 v = transformVertex(vertex.at(f), scale, translate);
+			vec.push_back(v);
+			int f1 = face.at(i).at(1) - 1;
+			Vector3 vt1(vt.at(f1).at(0), vt.at(f1).at(1));
+			vect.push_back(vt1);
+		}
+
+		if (face.size() == 4)
+		{
+			if (activeTexture != NULL)
+			{
+				vector<Vector3> v1;
+				vector<Vector3> vt2;
+				activeVertexArray.push(vec.at(0));
+				activeVertexArray.push(vec.at(1));
+				activeVertexArray.push(vec.at(2));
+
+				activeVertexArray.push(vect.at(0));
+				activeVertexArray.push(vect.at(1));
+				activeVertexArray.push(vect.at(2));
+				// triangle(v1, vt2);
+
+				// v1.clear(); vt2.clear();
+				activeVertexArray.push(vec.at(2));
+				activeVertexArray.push(vec.at(3));
+				activeVertexArray.push(vec.at(0));
+
+				activeVertexArray.push(vect.at(2));
+				activeVertexArray.push(vect.at(3));
+				activeVertexArray.push(vect.at(0));
+				triangle(v1, vt2);
+			}
+			else
+			{
+				activeVertexArray.push(vec.at(0));
+				activeVertexArray.push(vec.at(1));
+				activeVertexArray.push(vec.at(2));
+			}
+		}
+
+		if (face.size() == 3)
+		{
+			activeVertexArray.push(vec.at(0));
+			activeVertexArray.push(vec.at(1));
+			activeVertexArray.push(vec.at(2));
+			if (activeTexture != NULL)
+			{
+				activeVertexArray.push(vect.at(0));
+				activeVertexArray.push(vect.at(1));
+				activeVertexArray.push(vect.at(2));
+			}
+		}
+	}
+
+	delete obj;
+}
+
 void Render::readObj(string filename)
 {
 	Obj* obj = new Obj(filename);
@@ -512,45 +586,47 @@ void Render::readObj(string filename)
 
 		if (face.size() == 4)
 		{
-			if (texture != NULL)
+			if (activeTexture != NULL)
 			{
 				vector<Vector3> v1;
 				vector<Vector3> vt2;
-				v1.push_back(vec.at(0));
-				v1.push_back(vec.at(1));
-				v1.push_back(vec.at(2));
+				activeVertexArray.push(vec.at(0));
+				activeVertexArray.push(vec.at(1));
+				activeVertexArray.push(vec.at(2));
 
-				vt2.push_back(vect.at(0));
-				vt2.push_back(vect.at(1));
-				vt2.push_back(vect.at(2));
-				triangle(v1, vt2);
+				activeVertexArray.push(vect.at(0));
+				activeVertexArray.push(vect.at(1));
+				activeVertexArray.push(vect.at(2));
+				// triangle(v1, vt2);
 
-				v1.clear(); vt2.clear();
-				v1.push_back(vec.at(2));
-				v1.push_back(vec.at(3));
-				v1.push_back(vec.at(0));
+				// v1.clear(); vt2.clear();
+				activeVertexArray.push(vec.at(2));
+				activeVertexArray.push(vec.at(3));
+				activeVertexArray.push(vec.at(0));
 
-				vt2.push_back(vect.at(2));
-				vt2.push_back(vect.at(3));
-				vt2.push_back(vect.at(0));
+				activeVertexArray.push(vect.at(2));
+				activeVertexArray.push(vect.at(3));
+				activeVertexArray.push(vect.at(0));
 				triangle(v1, vt2);
 			}
 			else
 			{
-				triangle(vec.at(0), vec.at(1), vec.at(2));
-				triangle(vec.at(2), vec.at(3), vec.at(0));
+				activeVertexArray.push(vec.at(0));
+				activeVertexArray.push(vec.at(1));
+				activeVertexArray.push(vec.at(2));
 			}
 		}
 
 		if (face.size() == 3)
 		{
-			if (texture != NULL)
+			activeVertexArray.push(vec.at(0));
+			activeVertexArray.push(vec.at(1));
+			activeVertexArray.push(vec.at(2));
+			if (activeTexture != NULL)
 			{
-				triangle(vec, vect);
-			}
-			else
-			{
-				triangle(vec.at(0), vec.at(1), vec.at(2));
+				activeVertexArray.push(vect.at(0));
+				activeVertexArray.push(vect.at(1));
+				activeVertexArray.push(vect.at(2));
 			}
 		}
 	}
@@ -611,7 +687,7 @@ void Render::triangle(vector<Vector3> vertices, vector<Vector3> vt)
 				{
 					float tx = tA.getX() * w + tB.getX() * u + tC.getX() * v;
 					float ty = tA.getY() * w + tB.getY() * u + tC.getY() * v;
-					unsigned char* col = texture->getColorIntensity(tx, ty, i);
+					unsigned char* col = activeTexture->getColorIntensity(tx, ty, i);
 					color[0] = col[0];
 					color[1] = col[1];
 					color[2] = col[2];
@@ -630,6 +706,13 @@ void Render::triangle(vector<Vector3> vertices, vector<Vector3> vt)
 
 			delete temp;
 		}
+}
+
+void Render::draw()
+{
+	while (!activeVertexArray.empty()){
+		triangle();
+	}
 }
 
 void Render::triangle(vector<Vector3> vertices)
@@ -680,6 +763,80 @@ void Render::triangle(vector<Vector3> vertices)
 			/* color[2] = (unsigned char) Acolor[0] * temp[0] + Bcolor[0] * temp[1] + Ccolor[0] * temp[2];
 			color[1] = (unsigned char) Acolor[1] * temp[0] + Bcolor[1] * temp[1] + Ccolor[1] * temp[2];
 			color[0] = (unsigned char) Acolor[2] * temp[0] + Bcolor[2] * temp[1] + Ccolor[2] * temp[2]; */
+
+			delete temp;
+		}
+}
+
+void Render::triangle()
+{
+	Vector3 a = activeVertexArray.front();
+	activeVertexArray.pop();
+	Vector3 b = activeVertexArray.front();
+	activeVertexArray.pop();
+	Vector3 c = activeVertexArray.front();
+	activeVertexArray.pop();
+	Vector3* tA;
+	Vector3* tB;
+	Vector3* tC;
+	if (activeTexture != NULL)
+	{
+		tA = &activeVertexArray.front();
+		activeVertexArray.pop();
+		tB = &activeVertexArray.front();
+		activeVertexArray.pop();
+		tC = &activeVertexArray.front();
+		activeVertexArray.pop();
+	}
+
+	color[2] = (unsigned char) (rand() % 255);
+	color[1] = (unsigned char) (rand() % 255);
+	color[0] = (unsigned char) (rand() % 255);
+	
+	Vector3 n = (b - a) * (c - a);
+	float i = n.normalized().dot(l->normalized());
+	if (i < 0)
+		return;
+	color[2] = (unsigned char) (int) 255 * i;
+	color[1] = (unsigned char) (int) 255 * i;
+	color[0] = (unsigned char) (int) 255 * i;
+
+	int Acolor[3] = {255, 0, 0};
+	int Bcolor[3] = {0, 255, 0};
+	int Ccolor[3] = {0, 0, 255};
+
+	vector<Vector3> vec = boundingBox(a, b, c);
+	Vector3 min = vec.at(0);
+	Vector3 max = vec.at(1);
+	min.round();
+	max.round();
+	for (int x = (int) min.getX(); x <= (int) max.getX(); x++)
+		for (int y = (int) min.getY(); y <= (int) max.getY(); y++)
+		{
+			float* temp = barycentric(a, b, c, Vector3(x, y));
+			float w = temp[0]; float v = temp[1]; float u = temp[2];
+			if (temp[0] >= 0 && temp[1] >= 0 && temp[2] >= 0)
+			{
+				float z = a.getZ() * temp[0] + b.getZ() * temp[1] + c.getZ() * temp[2];
+				if (zBuffer[x][y] < z)
+				{
+					if (activeTexture != NULL)
+					{
+						float tx = tA->getX() * w + tB->getX() * u + tC->getX() * v;
+						float ty = tA->getY() * w + tB->getY() * u + tC->getY() * v;
+						unsigned char* col = activeTexture->getColorIntensity(tx, ty, i);
+						color[0] = col[0];
+						color[1] = col[1];
+						color[2] = col[2];
+					}
+					zBuffer[x][y] = z;
+					pointLine(x, y);
+				}
+				if (z < minZ)
+					minZ = z;
+				if (z > maxZ)
+					maxZ = z;
+			}
 
 			delete temp;
 		}
@@ -793,19 +950,19 @@ float* Render::barycentric(Vector3 A, Vector3 B, Vector3 C, Vector3 P)
 
 void Render::setTexture(string path)
 {
-	texture = new Texture(path);
+	activeTexture = new Texture(path);
 	 //width = texture->getWidth();
 	 //height = texture->getHeight();
 }
 
 void Render::map()
 {
-	startBuffer(texture->getWidth(), texture->getHeight());
+	startBuffer(activeTexture->getWidth(), activeTexture->getHeight());
     Obj obj("droid.obj");
     vector<vector<vector<int>>> faces = obj.getFaces();
     vector<vector<float>> vts = obj.getVt();
     changeColor(1, 1, 1);
-    setBuffer(texture->getPixels());
+    setBuffer(activeTexture->getPixels());
     for (vector<vector<int>> f : faces)
     {
 		if (f.size() == 4)
