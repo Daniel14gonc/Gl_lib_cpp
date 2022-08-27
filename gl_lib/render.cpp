@@ -3,6 +3,7 @@
 #include <fstream>
 #include <cmath>
 #include <vector>
+#include <math.h>
 
 using namespace std;
 
@@ -185,6 +186,47 @@ void Render::writeZBuffer()
 	fclose(imageFile);
 }
 
+void Render::loadModelMatrix(float* scale, int* translate, float* rotation)
+{
+	Vector3 sc(scale[0], scale[1], scale[2]);
+	Vector3 tr(translate[0], translate[1], translate[2]);
+	Vector3 ro(rotation[0], rotation[1], rotation[2]);
+	Matrix<4, 4> translation = {{{1, 0, 0, tr.getX()}, {0, 1, 0, tr.getY()}, {0, 0, 1, tr.getZ()}, {0, 0, 0, 1}}};
+	Matrix<4, 4> scaling = {{{sc.getX(), 0, 0, 0}, {0, sc.getY(), 0, 0}, {0, 0, sc.getZ(), 0}, {0, 0, 0, 1}}};
+	float a = ro.getX();
+	Matrix<4, 4> xRotation = {{
+		{1,      0,       0, 0},
+		{0, cos(a), -sin(a), 0},
+		{0, sin(a),  cos(a), 0},
+		{0,      0,       0, 1}
+	}};
+
+	a = ro.getY();
+	Matrix<4, 4> yRotation = {{
+		{ cos(a), 0, sin(a), 0},
+		{      0, 1,      0, 0},
+		{-sin(a), 0, cos(a), 0},
+		{      0,  0,     0, 1}
+	}};
+
+	a = ro.getZ();
+	Matrix<4, 4> zRotation = {{
+		{cos(a), -sin(a), 0, 0},
+		{sin(a),  cos(a), 0, 0},
+		{     0,       0, 1, 0},
+		{     0,       0, 0, 1}
+	}};
+	
+	Matrix<4, 4> rot = xRotation * yRotation * zRotation;
+	model = translation * rot * scaling;
+}
+
+void lookAt(Vector3 eye, Vector3 center, Vector3 up)
+{
+	Vector3 z = (eye - center).normalized();
+	Vector3 x = (up * z).normalized();
+	Vector3 y = (z * x).normalized();
+}
 
 unsigned char* Render::createFileHeader(int fileSize)
 {
@@ -515,8 +557,6 @@ void Render::readObj(string filename, float* scale, int* translate)
 		{
 			if (activeTexture != NULL)
 			{
-				vector<Vector3> v1;
-				vector<Vector3> vt2;
 				activeVertexArray.push(vec.at(0));
 				activeVertexArray.push(vec.at(1));
 				activeVertexArray.push(vec.at(2));
@@ -524,9 +564,7 @@ void Render::readObj(string filename, float* scale, int* translate)
 				activeVertexArray.push(vect.at(0));
 				activeVertexArray.push(vect.at(1));
 				activeVertexArray.push(vect.at(2));
-				// triangle(v1, vt2);
 
-				// v1.clear(); vt2.clear();
 				activeVertexArray.push(vec.at(2));
 				activeVertexArray.push(vec.at(3));
 				activeVertexArray.push(vec.at(0));
@@ -534,7 +572,6 @@ void Render::readObj(string filename, float* scale, int* translate)
 				activeVertexArray.push(vect.at(2));
 				activeVertexArray.push(vect.at(3));
 				activeVertexArray.push(vect.at(0));
-				triangle(v1, vt2);
 			}
 			else
 			{
@@ -567,8 +604,8 @@ void Render::readObj(string filename)
 	vector<vector<vector<int>>> faces = obj->getFaces();
 	vector<vector<float>> vertex = obj->getVertex();
 	vector<vector<float>> vt = obj->getVt();
-	float scaleFactor[3] = {5, 5, 3};
-	int translateFactor[3] = {700, 400, 0};
+	// float scaleFactor[3] = {5, 5, 3};
+	// int translateFactor[3] = {700, 400, 0};
 	for (vector<vector<int>> face : faces)
 	{
 		vector<Vector3> vec;
@@ -577,7 +614,7 @@ void Render::readObj(string filename)
 		for (int i = 0; i < face.size(); i++)
 		{
 			int f = face.at(i).at(0) - 1;
-			Vector3 v = transformVertex(vertex.at(f), scaleFactor, translateFactor);
+			Vector3 v = transformVertex(vertex.at(f) /*scaleFactor, translateFactor*/);
 			vec.push_back(v);
 			int f1 = face.at(i).at(1) - 1;
 			Vector3 vt1(vt.at(f1).at(0), vt.at(f1).at(1));
@@ -588,8 +625,6 @@ void Render::readObj(string filename)
 		{
 			if (activeTexture != NULL)
 			{
-				vector<Vector3> v1;
-				vector<Vector3> vt2;
 				activeVertexArray.push(vec.at(0));
 				activeVertexArray.push(vec.at(1));
 				activeVertexArray.push(vec.at(2));
@@ -607,7 +642,6 @@ void Render::readObj(string filename)
 				activeVertexArray.push(vect.at(2));
 				activeVertexArray.push(vect.at(3));
 				activeVertexArray.push(vect.at(0));
-				triangle(v1, vt2);
 			}
 			else
 			{
@@ -640,6 +674,24 @@ Vector3 Render::transformVertex(vector<float> vec, float* scale, int* translate)
 		(vec.at(0) * scale[0]) + translate[0],
 		(vec.at(1) * scale[1]) + translate[1],
 		(vec.at(2) * scale[2]) + translate[2]
+	);
+	return v;
+}
+
+Vector3 Render::transformVertex(vector<float> vec)
+{
+	Vector4 augmentendVertex(
+		vec.at(0),
+		vec.at(1),
+		vec.at(2),
+		1
+	);
+	Vector4 transformedVertex = model * augmentendVertex;
+	// cout << transformedVertex.to_string() << endl;
+	Vector3 v (
+		transformedVertex.getX() / transformedVertex.getW(),
+		transformedVertex.getY() / transformedVertex.getW(),
+		transformedVertex.getZ() / transformedVertex.getW()
 	);
 	return v;
 }
@@ -776,17 +828,27 @@ void Render::triangle()
 	activeVertexArray.pop();
 	Vector3 c = activeVertexArray.front();
 	activeVertexArray.pop();
-	Vector3* tA;
-	Vector3* tB;
-	Vector3* tC;
+	float tAX = 0;
+	float tAY = 0;
+	float tBX = 0;
+	float tBY = 0;
+	float tCX = 0;
+	float tCY = 0;
 	if (activeTexture != NULL)
 	{
-		tA = &activeVertexArray.front();
+		Vector3 tA = activeVertexArray.front();
 		activeVertexArray.pop();
-		tB = &activeVertexArray.front();
+		Vector3 tB = activeVertexArray.front();
 		activeVertexArray.pop();
-		tC = &activeVertexArray.front();
+		Vector3 tC = activeVertexArray.front();
 		activeVertexArray.pop();
+
+		tAX = tA.getX();
+		tAY = tA.getY();
+		tBX = tB.getX();
+		tBY = tB.getY();
+		tCX = tC.getX();
+		tCY = tC.getY();
 	}
 
 	color[2] = (unsigned char) (rand() % 255);
@@ -795,7 +857,7 @@ void Render::triangle()
 	
 	Vector3 n = (b - a) * (c - a);
 	float i = n.normalized().dot(l->normalized());
-	if (i < 0)
+	if (i < 0) 
 		return;
 	color[2] = (unsigned char) (int) 255 * i;
 	color[1] = (unsigned char) (int) 255 * i;
@@ -822,8 +884,8 @@ void Render::triangle()
 				{
 					if (activeTexture != NULL)
 					{
-						float tx = tA->getX() * w + tB->getX() * u + tC->getX() * v;
-						float ty = tA->getY() * w + tB->getY() * u + tC->getY() * v;
+						float tx = tAX * w + tBX * u + tCX * v;
+						float ty = tAY * w + tBY * u + tCY * v;
 						unsigned char* col = activeTexture->getColorIntensity(tx, ty, i);
 						color[0] = col[0];
 						color[1] = col[1];
@@ -951,18 +1013,17 @@ float* Render::barycentric(Vector3 A, Vector3 B, Vector3 C, Vector3 P)
 void Render::setTexture(string path)
 {
 	activeTexture = new Texture(path);
-	 //width = texture->getWidth();
-	 //height = texture->getHeight();
 }
 
-void Render::map()
+void Render::map(string path)
 {
-	startBuffer(activeTexture->getWidth(), activeTexture->getHeight());
-    Obj obj("droid.obj");
+	Texture* texture = new Texture(path + ".bmp");
+	startBuffer(texture->getWidth(), texture->getHeight());
+    Obj obj(path + ".obj");
     vector<vector<vector<int>>> faces = obj.getFaces();
     vector<vector<float>> vts = obj.getVt();
     changeColor(1, 1, 1);
-    setBuffer(activeTexture->getPixels());
+    setBuffer(texture->getPixels());
     for (vector<vector<int>> f : faces)
     {
 		if (f.size() == 4)
@@ -1001,6 +1062,7 @@ void Render::map()
         }
     }
     write("map.bmp");
+	delete texture;
 }
 
 /*

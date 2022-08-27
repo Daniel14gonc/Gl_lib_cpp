@@ -3,6 +3,7 @@
 #include "vector3.h"
 #include "texture.h"
 #include <queue>
+#include <matrix.hpp>
 
 using namespace std;
 
@@ -27,12 +28,14 @@ class Render
 		int* calculatePosition(float, float);
 		void pointLine(int, int);
 		Vector3 transformVertex(vector<float>, float*, int*);
+		Vector3 transformVertex(vector<float>);
 		float* barycentric(Vector3, Vector3, Vector3, Vector3);
 		vector<Vector3> boundingBox(Vector3, Vector3, Vector3);
 		float* cross(Vector3, Vector3);
 		void writeZBuffer();
 		queue<Vector3> activeVertexArray;
-		void draw();
+		Matrix<4, 4> model;
+		Matrix<4, 4> view;
 
 	public:
 		Render();
@@ -53,6 +56,9 @@ class Render
 		void triangle(vector<Vector3>);
 		void triangle(vector<Vector3>, vector<Vector3>);
 		void triangle();
-		void map();
+		void map(string path);
 		void setTexture(string);
+		void draw();
+		void loadModelMatrix(float*, int*, float*);
+		void lookAt(Vector3, Vector3, Vector3);
 };

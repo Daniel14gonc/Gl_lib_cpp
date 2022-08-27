@@ -16,7 +16,7 @@ struct Matrix
 		Matrix<N, M> m;
 		for (int i = 0; i < N; i++)
 		{
-			for(int j = 0; j < N; j++)
+			for(int j = 0; j < other.getRows(); j++)
 			{
 				float res = 0;
 				for(int k = 0; k < M; k++)
@@ -31,19 +31,26 @@ struct Matrix
 
 	Vector4 operator * (Vector4 other)
 	{
-		Vector4 m;
-		for (int i = 0; i < N; i++)
-		{
-			for(int j = 0; j < N; j++)
-			{
-				float res = 0;
-				for(int k = 0; k < M; k++)
-				{
-					res += this->getElement(i, k) * other.getElement(k);
-				}
-				m.setElement(i, res);
-			}
-		}
+		float x1 = this->getElement(0, 0) * other.getX() +
+				   this->getElement(0, 1) * other.getY() +
+				   this->getElement(0, 2) * other.getZ() +
+				   this->getElement(0, 3) * other.getW();
+		
+		float x2 = this->getElement(1, 0) * other.getX() +
+				   this->getElement(1, 1) * other.getY() +
+				   this->getElement(1, 2) * other.getZ() +
+				   this->getElement(1, 3) * other.getW();
+
+		float x3 = this->getElement(2, 0) * other.getX() +
+				   this->getElement(2, 1) * other.getY() +
+				   this->getElement(2, 2) * other.getZ() +
+				   this->getElement(2, 3) * other.getW();
+
+		float x4 = this->getElement(3, 0) * other.getX() +
+				   this->getElement(3, 1) * other.getY() +
+				   this->getElement(3, 2) * other.getZ() +
+				   this->getElement(3, 3) * other.getW();
+		Vector4 m(x1, x2, x3, x4);
 		return m;
 	}
 

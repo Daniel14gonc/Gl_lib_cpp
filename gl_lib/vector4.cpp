@@ -7,6 +7,7 @@ Vector4::Vector4(float x, float y, float z, float w)
     vec[0] = x;
     vec[1] = y;
     vec[2] = z;
+    vec[3] = w;
 }
 
 float* Vector4::getCoordinates()
@@ -27,6 +28,11 @@ float Vector4::getY()
 float Vector4::getZ()
 {
     return vec[2];
+}
+
+float Vector4::getW()
+{
+    return vec[3];
 }
 
 Vector4 Vector4::operator+(Vector4 other)

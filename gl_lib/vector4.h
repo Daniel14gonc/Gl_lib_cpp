@@ -22,6 +22,8 @@ class Vector4
         
         float getZ();
 
+        float getW();
+
         // Sum of arrays
         Vector4 operator+(Vector4);
 

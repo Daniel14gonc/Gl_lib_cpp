@@ -56,6 +56,11 @@ void glObject(string filename)
 	render->readObj(filename);
 }
 
+void glObject(string filename, float* scale, int* translate)
+{
+	render->readObj(filename, scale, translate);
+}
+
 void glLine(Vector3 a, Vector3 b)
 {
 	render->drawLine(a, b);
@@ -68,11 +73,20 @@ void glTriangle(Vector3 a, Vector3 b, Vector3 c)
 
 void glMap(string path)
 {
-	render->setTexture(path);
-	render->map();
+	render->map(path);
 }
 
 void glTexture(string path)
 {
 	render->setTexture(path);
+}
+
+void glDraw()
+{
+	render->draw();
+}
+
+void glLoadMatrix(float* scale, int* translate, float* rotate)
+{
+	render->loadModelMatrix(scale, translate, rotate);
 }
