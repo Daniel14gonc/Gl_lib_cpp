@@ -36,6 +36,7 @@ class Render
 		queue<Vector3> activeVertexArray;
 		Matrix<4, 4> model;
 		Matrix<4, 4> view;
+		void loadViewMatrix(Vector3, Vector3, Vector3, Vector3);
 
 	public:
 		Render();
@@ -60,5 +61,5 @@ class Render
 		void setTexture(string);
 		void draw();
 		void loadModelMatrix(float*, int*, float*);
-		void lookAt(Vector3, Vector3, Vector3);
+		void lookAt(float*, float*, float*);
 };

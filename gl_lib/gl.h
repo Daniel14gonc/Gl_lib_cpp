@@ -18,3 +18,4 @@ void glMap(string);
 void glTexture(string);
 void glDraw();
 void glLoadMatrix(float*, int*, float*);
+void glEye(float*, float*, float*);

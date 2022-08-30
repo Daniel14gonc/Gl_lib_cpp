@@ -221,11 +221,34 @@ void Render::loadModelMatrix(float* scale, int* translate, float* rotation)
 	model = translation * rot * scaling;
 }
 
-void lookAt(Vector3 eye, Vector3 center, Vector3 up)
+void Render::loadViewMatrix(Vector3 x, Vector3 y, Vector3 z, Vector3 center)
 {
+	Matrix<4, 4> mi = {{
+		{x.getX(), x.getY(), x.getZ(), 0},
+		{y.getX(), y.getY(), y.getZ(), 0},
+		{z.getX(), z.getY(), z.getZ(), 0},
+		{0, 0, 0, 1},
+	}};
+
+	Matrix<4, 4> O = {{
+		{1, 0, 0, -center.getX()},
+		{0, 1, 0, -center.getY()},
+		{0, 0, 1, -center.getZ()},
+		{0, 0, 0, 1}
+	}};
+
+	view = mi * O;
+}
+
+void Render::lookAt(float* e, float* c, float* u)
+{
+	Vector3 eye(e[0], e[1], e[2]);
+	Vector3 center(c[0], c[1], c[2]);
+	Vector3 up(u[0], u[1], u[2]);
 	Vector3 z = (eye - center).normalized();
 	Vector3 x = (up * z).normalized();
 	Vector3 y = (z * x).normalized();
+	loadViewMatrix(x, y, z, center);
 }
 
 unsigned char* Render::createFileHeader(int fileSize)
@@ -686,8 +709,7 @@ Vector3 Render::transformVertex(vector<float> vec)
 		vec.at(2),
 		1
 	);
-	Vector4 transformedVertex = model * augmentendVertex;
-	// cout << transformedVertex.to_string() << endl;
+	Vector4 transformedVertex = model * view * augmentendVertex;
 	Vector3 v (
 		transformedVertex.getX() / transformedVertex.getW(),
 		transformedVertex.getY() / transformedVertex.getW(),

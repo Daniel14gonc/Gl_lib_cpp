@@ -90,3 +90,8 @@ void glLoadMatrix(float* scale, int* translate, float* rotate)
 {
 	render->loadModelMatrix(scale, translate, rotate);
 }
+
+void glEye(float* eye, float* center, float* up)
+{
+	render->lookAt(eye, center, up);
+}
