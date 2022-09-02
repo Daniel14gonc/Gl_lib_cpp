@@ -44,6 +44,7 @@ void glColor(float r, float g, float b)
 void glViewPort(int x, int y, int width, int height)
 {
 	render->viewPort(x, y, width, height);
+	render->loadViewportMatrix();
 }
 
 void glLine(float x0, float y0, float x1, float y1)
@@ -86,7 +87,7 @@ void glDraw()
 	render->draw();
 }
 
-void glLoadMatrix(float* scale, int* translate, float* rotate)
+void glLoadMatrix(float* scale, float* translate, float* rotate)
 {
 	render->loadModelMatrix(scale, translate, rotate);
 }

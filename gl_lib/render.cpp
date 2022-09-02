@@ -186,7 +186,7 @@ void Render::writeZBuffer()
 	fclose(imageFile);
 }
 
-void Render::loadModelMatrix(float* scale, int* translate, float* rotation)
+void Render::loadModelMatrix(float* scale, float* translate, float* rotation)
 {
 	Vector3 sc(scale[0], scale[1], scale[2]);
 	Vector3 tr(translate[0], translate[1], translate[2]);
@@ -231,13 +231,35 @@ void Render::loadViewMatrix(Vector3 x, Vector3 y, Vector3 z, Vector3 center)
 	}};
 
 	Matrix<4, 4> O = {{
-		{1, 0, 0, -center.getX()},
-		{0, 1, 0, -center.getY()},
-		{0, 0, 1, -center.getZ()},
+		{1, 0, 0, center.getX()},
+		{0, 1, 0, center.getY()},
+		{0, 0, 1, center.getZ()},
 		{0, 0, 0, 1}
 	}};
 
+	// cout << mi.to_string() << endl;
+
 	view = mi * O;
+}
+
+void Render::loadProjectionMatrix()
+{
+	projection = {{
+		{1, 0, 0, 0},
+        {0, 1, 0, 0},
+        {0, 0, 1, 0},
+        {0, 0, -0.001, 1}
+	}};
+}
+
+void Render::loadViewportMatrix()
+{
+	viewport = {{
+		{((float) (width)) / 2, 0, 0, ((float) width) / 2},
+        {0, (float)(height) / 2, 0, (float)(height) / 2},
+        {0, 0, 128, 128},
+        {0, 0, 0, 1}
+	}};
 }
 
 void Render::lookAt(float* e, float* c, float* u)
@@ -247,8 +269,10 @@ void Render::lookAt(float* e, float* c, float* u)
 	Vector3 up(u[0], u[1], u[2]);
 	Vector3 z = (eye - center).normalized();
 	Vector3 x = (up * z).normalized();
+	cout << (eye - center).normalized().to_string() << endl;
 	Vector3 y = (z * x).normalized();
 	loadViewMatrix(x, y, z, center);
+	loadProjectionMatrix();
 }
 
 unsigned char* Render::createFileHeader(int fileSize)
@@ -709,7 +733,7 @@ Vector3 Render::transformVertex(vector<float> vec)
 		vec.at(2),
 		1
 	);
-	Vector4 transformedVertex = model * view * augmentendVertex;
+	Vector4 transformedVertex = viewport * projection * model * view * augmentendVertex;
 	Vector3 v (
 		transformedVertex.getX() / transformedVertex.getW(),
 		transformedVertex.getY() / transformedVertex.getW(),
@@ -902,7 +926,7 @@ void Render::triangle()
 			if (temp[0] >= 0 && temp[1] >= 0 && temp[2] >= 0)
 			{
 				float z = a.getZ() * temp[0] + b.getZ() * temp[1] + c.getZ() * temp[2];
-				if (zBuffer[x][y] < z)
+				if (zBuffer[x][y] < z && x > 0 && y > 0 && x < height && y < width)
 				{
 					if (activeTexture != NULL)
 					{

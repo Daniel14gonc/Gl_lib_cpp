@@ -36,6 +36,8 @@ class Render
 		queue<Vector3> activeVertexArray;
 		Matrix<4, 4> model;
 		Matrix<4, 4> view;
+		Matrix<4, 4> projection;
+		Matrix<4, 4> viewport;
 		void loadViewMatrix(Vector3, Vector3, Vector3, Vector3);
 
 	public:
@@ -60,6 +62,8 @@ class Render
 		void map(string path);
 		void setTexture(string);
 		void draw();
-		void loadModelMatrix(float*, int*, float*);
+		void loadModelMatrix(float*, float*, float*);
 		void lookAt(float*, float*, float*);
+		void loadProjectionMatrix();
+		void loadViewportMatrix();
 };
