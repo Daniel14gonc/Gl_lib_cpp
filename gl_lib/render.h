@@ -39,6 +39,7 @@ class Render
 		Matrix<4, 4> projection;
 		Matrix<4, 4> viewport;
 		void loadViewMatrix(Vector3, Vector3, Vector3, Vector3);
+		bool activeShader;
 
 	public:
 		Render();
@@ -59,6 +60,11 @@ class Render
 		void triangle(vector<Vector3>);
 		void triangle(vector<Vector3>, vector<Vector3>);
 		void triangle();
+
+		template<class Types>
+		unsigned char* shader(initializer_list<Types> list);
+
+		unsigned char* shader(vector<Vector3> vertices, vector<Vector3> textureCoords, vector<Vector3> normals, float* bar, Vector3*);
 		void map(string path);
 		void setTexture(string);
 		void draw();
@@ -66,4 +72,5 @@ class Render
 		void lookAt(float*, float*, float*);
 		void loadProjectionMatrix();
 		void loadViewportMatrix();
+		void activate();
 };

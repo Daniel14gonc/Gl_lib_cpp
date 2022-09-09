@@ -22,6 +22,7 @@ Render::Render()
 	minZ = 9999;
 	maxZ = -99999;
 	l = new Vector3(0, 0, 1);
+	activeShader = false;
 }
 
 void Render::startBuffer(int w, int h)
@@ -255,8 +256,8 @@ void Render::loadProjectionMatrix()
 void Render::loadViewportMatrix()
 {
 	viewport = {{
-		{((float) (width)) / 2, 0, 0, ((float) width) / 2},
-        {0, (float)(height) / 2, 0, (float)(height) / 2},
+		{((float) (width))/2, 0, 0, ((float) width)/2},
+        {0, (float)(height)/2, 0, (float)(height)/2},
         {0, 0, 128, 128},
         {0, 0, 0, 1}
 	}};
@@ -651,21 +652,26 @@ void Render::readObj(string filename)
 	vector<vector<vector<int>>> faces = obj->getFaces();
 	vector<vector<float>> vertex = obj->getVertex();
 	vector<vector<float>> vt = obj->getVt();
+	vector<vector<float>> vns = obj->getVn();
 	// float scaleFactor[3] = {5, 5, 3};
 	// int translateFactor[3] = {700, 400, 0};
 	for (vector<vector<int>> face : faces)
 	{
 		vector<Vector3> vec;
 		vector<Vector3> vect;
+		vector<Vector3> vn;
 		// cout << face.size() << endl;	
 		for (int i = 0; i < face.size(); i++)
 		{
 			int f = face.at(i).at(0) - 1;
-			Vector3 v = transformVertex(vertex.at(f) /*scaleFactor, translateFactor*/);
+			Vector3 v = transformVertex(vertex.at(f));
 			vec.push_back(v);
 			int f1 = face.at(i).at(1) - 1;
 			Vector3 vt1(vt.at(f1).at(0), vt.at(f1).at(1));
 			vect.push_back(vt1);
+			int f2 = face.at(i).at(2) - 1;
+			Vector3 vnorm(vns.at(f2).at(0), vns.at(f2).at(1), vns.at(f2).at(2));
+			vn.push_back(vnorm);
 		}
 
 		if (face.size() == 4)
@@ -679,6 +685,10 @@ void Render::readObj(string filename)
 				activeVertexArray.push(vect.at(0));
 				activeVertexArray.push(vect.at(1));
 				activeVertexArray.push(vect.at(2));
+
+				activeVertexArray.push(vn.at(0));
+				activeVertexArray.push(vn.at(1));
+				activeVertexArray.push(vn.at(2));
 				// triangle(v1, vt2);
 
 				// v1.clear(); vt2.clear();
@@ -689,12 +699,20 @@ void Render::readObj(string filename)
 				activeVertexArray.push(vect.at(2));
 				activeVertexArray.push(vect.at(3));
 				activeVertexArray.push(vect.at(0));
+				
+				activeVertexArray.push(vn.at(2));
+				activeVertexArray.push(vn.at(3));
+				activeVertexArray.push(vn.at(0));
 			}
 			else
 			{
 				activeVertexArray.push(vec.at(0));
 				activeVertexArray.push(vec.at(1));
 				activeVertexArray.push(vec.at(2));
+
+				activeVertexArray.push(vn.at(0));
+				activeVertexArray.push(vn.at(1));
+				activeVertexArray.push(vn.at(2));
 			}
 		}
 
@@ -709,6 +727,9 @@ void Render::readObj(string filename)
 				activeVertexArray.push(vect.at(1));
 				activeVertexArray.push(vect.at(2));
 			}
+			activeVertexArray.push(vn.at(0));
+			activeVertexArray.push(vn.at(1));
+			activeVertexArray.push(vn.at(2));
 		}
 	}
 
@@ -880,6 +901,8 @@ void Render::triangle()
 	float tBY = 0;
 	float tCX = 0;
 	float tCY = 0;
+
+	vector<Vector3> coords;
 	if (activeTexture != NULL)
 	{
 		Vector3 tA = activeVertexArray.front();
@@ -889,6 +912,10 @@ void Render::triangle()
 		Vector3 tC = activeVertexArray.front();
 		activeVertexArray.pop();
 
+		coords.push_back(tA);
+		coords.push_back(tB);
+		coords.push_back(tC);
+
 		tAX = tA.getX();
 		tAY = tA.getY();
 		tBX = tB.getX();
@@ -897,17 +924,19 @@ void Render::triangle()
 		tCY = tC.getY();
 	}
 
-	color[2] = (unsigned char) (rand() % 255);
-	color[1] = (unsigned char) (rand() % 255);
-	color[0] = (unsigned char) (rand() % 255);
-	
-	Vector3 n = (b - a) * (c - a);
-	float i = n.normalized().dot(l->normalized());
-	if (i < 0) 
-		return;
-	color[2] = (unsigned char) (int) 255 * i;
-	color[1] = (unsigned char) (int) 255 * i;
-	color[0] = (unsigned char) (int) 255 * i;
+
+	vector<Vector3> norms;
+
+	Vector3 nA = activeVertexArray.front();
+	activeVertexArray.pop();
+	Vector3 nB = activeVertexArray.front();
+	activeVertexArray.pop();
+	Vector3 nC = activeVertexArray.front();
+	activeVertexArray.pop();
+
+	norms.push_back(nA);
+	norms.push_back(nB);
+	norms.push_back(nC);
 
 	int Acolor[3] = {255, 0, 0};
 	int Bcolor[3] = {0, 255, 0};
@@ -923,21 +952,31 @@ void Render::triangle()
 		{
 			float* temp = barycentric(a, b, c, Vector3(x, y));
 			float w = temp[0]; float v = temp[1]; float u = temp[2];
+			float* bar = new float[3];
+			bar[0] = w;
+			bar[1] = u;
+			bar[2] = v;
+			
 			if (temp[0] >= 0 && temp[1] >= 0 && temp[2] >= 0)
 			{
 				float z = a.getZ() * temp[0] + b.getZ() * temp[1] + c.getZ() * temp[2];
 				if (zBuffer[x][y] < z && x > 0 && y > 0 && x < height && y < width)
 				{
-					if (activeTexture != NULL)
+					zBuffer[x][y] = z;
+					if (activeShader)
 					{
-						float tx = tAX * w + tBX * u + tCX * v;
-						float ty = tAY * w + tBY * u + tCY * v;
-						unsigned char* col = activeTexture->getColorIntensity(tx, ty, i);
+						vector<Vector3> vertex;
+						vertex.push_back(a);
+						vertex.push_back(b);
+						vertex.push_back(c);
+						unsigned char* col = shader(vertex, coords, norms, bar, l);
+						// cout << "i" << endl;
 						color[0] = col[0];
 						color[1] = col[1];
 						color[2] = col[2];
+						// cout << "s" << endl;
 					}
-					zBuffer[x][y] = z;
+
 					pointLine(x, y);
 				}
 				if (z < minZ)
@@ -948,6 +987,63 @@ void Render::triangle()
 
 			delete temp;
 		}
+}
+
+void Render::activate()
+{
+	activeShader = true;
+}
+
+unsigned char* Render::shader(vector<Vector3> vertices, vector<Vector3> textureCoords, vector<Vector3> normals, float* bar, Vector3* l)
+{
+	float w = bar[0];
+	float u = bar[1];
+	float v = bar[2];
+
+	Vector3 a = vertices.at(0);
+	Vector3 b = vertices.at(1);
+	Vector3 c = vertices.at(2);
+
+	Vector3 tA = textureCoords.at(0);
+	Vector3 tB = textureCoords.at(1);
+	Vector3 tC = textureCoords.at(2);
+
+	Vector3 nA = normals.at(0);
+	Vector3 nB = normals.at(1);
+	Vector3 nC = normals.at(2);
+
+	float iA = nA.normalized().dot(l->normalized());
+	float iB = nB.normalized().dot(l->normalized());
+	float iC = nC.normalized().dot(l->normalized());
+
+	float i = ((iA * w) + (iB * u) + (iC * v)) * 3;
+	if (i < 0) i = 0;
+
+	/*Vector3 n = (b - a) * (c - a);
+	float i = n.normalized().dot(l->normalized());*/
+
+	float tAX = tA.getX();
+	float tAY = tA.getY();
+	float tBX = tB.getX();
+	float tBY = tB.getY();
+	float tCX = tC.getX();
+	float tCY = tC.getY();
+
+	if (activeTexture != NULL)
+	{
+		float tx = tAX * w + tBX * u + tCX * v;
+		float ty = tAY * w + tBY * u + tCY * v;
+		unsigned char* col = activeTexture->getColorIntensity(tx, ty, i);
+
+		return col;
+	}
+
+	unsigned char* col = new unsigned char[3];
+	col[0] = (unsigned char) 255;
+	col[1] = (unsigned char) 0;
+	col[2] = (unsigned char) 0;
+
+	return col;
 }
 
 void Render::triangle(Vector3 a, Vector3 b, Vector3 c)
@@ -1063,6 +1159,7 @@ void Render::setTexture(string path)
 
 void Render::map(string path)
 {
+	cout << path << endl;
 	Texture* texture = new Texture(path + ".bmp");
 	startBuffer(texture->getWidth(), texture->getHeight());
     Obj obj(path + ".obj");

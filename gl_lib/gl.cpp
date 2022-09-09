@@ -96,3 +96,8 @@ void glEye(float* eye, float* center, float* up)
 {
 	render->lookAt(eye, center, up);
 }
+
+void glShader()
+{
+	render->activate();
+}

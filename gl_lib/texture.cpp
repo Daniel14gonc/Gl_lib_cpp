@@ -74,6 +74,9 @@ unsigned char* Texture::getColorIntensity(float tx, float ty, float intensity)
 {
     int x = (int) (tx * width);
     int y = (int) (ty * height);
+
+    /*if (x >= width) x = width - 1;
+    if (y >= height) y = height - 1;*/
     unsigned char b = (unsigned char)((float)pixels[y][x][0] * intensity);
     unsigned char g = (unsigned char)((float) pixels[y][x][1] * intensity);
     unsigned char r = (unsigned char)((float)pixels[y][x][2] * intensity);

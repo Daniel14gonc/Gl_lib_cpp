@@ -31,6 +31,10 @@ Obj::Obj(string filename)
 			{
 				vt.push_back(vertexToFLoat(line.at(1)));
 			}
+			if (line.at(0) == "vn")
+			{
+				vn.push_back(vnToFLoat(line.at(1)));
+			}
 		}	
 	}
 
@@ -66,6 +70,18 @@ vector<vector<int>> Obj::faceToInt(string faces)
 }
 
 vector<float> Obj::vertexToFLoat(string vertex)
+{
+	vector<string> temp = split(vertex, ' ');
+	vector<float> res;
+	for (string i : temp)
+	{
+		if (i != " " && i != "")
+			res.push_back(stof(i));
+	}
+	return res;
+} 
+
+vector<float> Obj::vnToFLoat(string vertex)
 {
 	vector<string> temp = split(vertex, ' ');
 	vector<float> res;
@@ -140,4 +156,9 @@ vector<vector<float>> Obj::getVertex()
 vector<vector<float>> Obj::getVt()
 {
 	return vt;
+}
+
+vector<vector<float>> Obj::getVn()
+{
+	return vn;
 }
