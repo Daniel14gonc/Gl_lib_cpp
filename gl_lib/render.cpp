@@ -255,6 +255,7 @@ void Render::loadProjectionMatrix()
 
 void Render::loadViewportMatrix()
 {
+	cout << width << endl;
 	viewport = {{
 		{((float) (width))/2, 0, 0, ((float) width)/2},
         {0, (float)(height)/2, 0, (float)(height)/2},
@@ -969,7 +970,10 @@ void Render::triangle()
 						vertex.push_back(a);
 						vertex.push_back(b);
 						vertex.push_back(c);
-						unsigned char* col = shader(vertex, coords, norms, bar, l);
+						/*float xCenter = min.getX() + (max.getX() - min.getX())/2;
+						float yCenter = min.getY() + (max.getY() - min.getY())/2;*/
+						// unsigned char* col = shader(vertex, coords, norms, bar, l);
+						unsigned char* col = shader(x, y, norms, bar, l);
 						// cout << "i" << endl;
 						color[0] = col[0];
 						color[1] = col[1];
@@ -992,6 +996,160 @@ void Render::triangle()
 void Render::activate()
 {
 	activeShader = true;
+}
+
+unsigned char* Render::shader(int x, int y)
+{
+	float noise = s.fractal(14, (float) x / 600.0, (float) y/ 600.0);
+	int dBlue[3] = {   2,  43,  68 }; // dark blue: deep water
+    int dpBlue[3] = {   9,  62,  92 }; // deep blue: water
+    int blue[3] = {  17,  82, 112 }; // blue: shallow water
+    int lBlue[3] = {  69, 108, 118 }; // light blue: shore
+    int green[3] = {  42, 102,  41 }; // green: grass
+    int lGreen[3] = { 115, 128,  77 }; // light green: veld
+    int brown[3] = { 153, 143,  92 }; // brown: tundra
+    int grey[3] = { 179, 179, 179 }; // grey: rocks
+    int white[3] = { 255, 255, 255 }; // white: snow
+
+	// cout << noise << endl;
+
+
+	unsigned char* col = new unsigned char[3];
+	// cout << noise << endl;
+	/*int dBlue[3] = {55, 11, 10};
+	int blue[3] =  {124, 57, 48};*/
+	if (noise     < 0.00f)
+    {
+		col[0] = (unsigned char) dBlue[2];
+		col[1] = (unsigned char) dBlue[1];
+		col[2] = (unsigned char) dBlue[0];
+    }
+    else if(noise < 0.1f)
+    {
+		col[0] = (unsigned char) dpBlue[2];
+		col[1] = (unsigned char) dpBlue[1];
+		col[2] = (unsigned char) dpBlue[0];
+    }
+    else if(noise < 0.2f)
+    {
+		col[0] = (unsigned char) blue[2];
+		col[1] = (unsigned char) blue[1];
+		col[2] = (unsigned char) blue[0];
+    }
+    else if(noise < 0.7f)
+    {
+		col[0] = (unsigned char) green[2];
+		col[1] = (unsigned char) green[1];
+		col[2] = (unsigned char) green[0];
+    }
+    else if(noise < 0.75f)
+    {
+		col[0] = (unsigned char) lGreen[2];
+		col[1] = (unsigned char) lGreen[1];
+		col[2] = (unsigned char) lGreen[0];
+    }
+    else if(noise < 0.9f)
+    {
+		col[0] = (unsigned char) brown[2];
+		col[1] = (unsigned char) brown[1];
+		col[2] = (unsigned char) brown[0];
+    }
+    else if(noise < 0.970f)
+    {
+		col[0] = (unsigned char) grey[2];
+		col[1] = (unsigned char) grey[1];
+		col[2] = (unsigned char) grey[0];
+    }
+    else
+    {
+		col[0] = (unsigned char) white[2];
+		col[1] = (unsigned char) white[1];
+		col[2] = (unsigned char) white[0];
+    }
+	
+	return col;
+}
+
+unsigned char* Render::shader(int x, int y, vector<Vector3> normals, float* bar, Vector3* l)
+{
+	float noise = s.fractal(14, (float) x / 600.0, (float) y/ 600.0);
+	int dBlue[3] = {   2,  43,  68 }; // dark blue: deep water
+    int dpBlue[3] = {   9,  62,  92 }; // deep blue: water
+    int blue[3] = {  17,  82, 112 }; // blue: shallow water
+    int lBlue[3] = {  69, 108, 118 }; // light blue: shore
+    int green[3] = {  42, 102,  41 }; // green: grass
+    int lGreen[3] = { 115, 128,  77 }; // light green: veld
+    int brown[3] = { 153, 143,  92 }; // brown: tundra
+    int grey[3] = { 179, 179, 179 }; // grey: rocks
+    int white[3] = { 255, 255, 255 }; // white: snow
+
+	float w = bar[0];
+	float u = bar[1];
+	float v = bar[2];
+
+	Vector3 nA = normals.at(0);
+	Vector3 nB = normals.at(1);
+	Vector3 nC = normals.at(2);
+
+	float iA = nA.normalized().dot(l->normalized());
+	float iB = nB.normalized().dot(l->normalized());
+	float iC = nC.normalized().dot(l->normalized());
+
+	float i = ((iA * w) + (iB * u) + (iC * v)) * 3;
+	if (i < 0) i = 0;
+	if (i > 1) i = 1;
+
+	unsigned char* col = new unsigned char[3];
+	if (noise     < 0.00f)
+    {
+		col[0] = (unsigned char) (dBlue[2] * i);
+		col[1] = (unsigned char) (dBlue[1] * i);
+		col[2] = (unsigned char) (dBlue[0] * i);
+    }
+    else if(noise < 0.1f)
+    {
+		col[0] = (unsigned char) (dpBlue[2] * i);
+		col[1] = (unsigned char) (dpBlue[1] * i);
+		col[2] = (unsigned char) (dpBlue[0] * i);
+    }
+    else if(noise < 0.2f)
+    {
+		col[0] = (unsigned char) (blue[2] * i);
+		col[1] = (unsigned char) (blue[1] * i);
+		col[2] = (unsigned char) (blue[0] * i);
+    }
+    else if(noise < 0.7f)
+    {
+		col[0] = (unsigned char) (green[2] * i);
+		col[1] = (unsigned char) (green[1] * i);
+		col[2] = (unsigned char) (green[0] * i);
+    }
+    else if(noise < 0.75f)
+    {
+		col[0] = (unsigned char) (lGreen[2] * i);
+		col[1] = (unsigned char) (lGreen[1] * i);
+		col[2] = (unsigned char) (lGreen[0] * i);
+    }
+    else if(noise < 0.9f)
+    {
+		col[0] = (unsigned char) (brown[2] * i);
+		col[1] = (unsigned char) (brown[1] * i);
+		col[2] = (unsigned char) (brown[0] * i);
+    }
+    else if(noise < 0.970f)
+    {
+		col[0] = (unsigned char) (grey[2] * i);
+		col[1] = (unsigned char) (grey[1] * i);
+		col[2] = (unsigned char) (grey[0] * i);
+    }
+    else
+    {
+		col[0] = (unsigned char) (white[2]* i);
+		col[1] = (unsigned char) (white[1] * i);
+		col[2] = (unsigned char) (white[0] * i);
+    }
+	
+	return col;
 }
 
 unsigned char* Render::shader(vector<Vector3> vertices, vector<Vector3> textureCoords, vector<Vector3> normals, float* bar, Vector3* l)

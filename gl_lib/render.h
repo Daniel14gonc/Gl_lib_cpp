@@ -4,6 +4,7 @@
 #include "texture.h"
 #include <queue>
 #include <matrix.hpp>
+#include "simplex.h"
 
 using namespace std;
 
@@ -40,6 +41,7 @@ class Render
 		Matrix<4, 4> viewport;
 		void loadViewMatrix(Vector3, Vector3, Vector3, Vector3);
 		bool activeShader;
+		SimplexNoise s;
 
 	public:
 		Render();
@@ -65,6 +67,8 @@ class Render
 		unsigned char* shader(initializer_list<Types> list);
 
 		unsigned char* shader(vector<Vector3> vertices, vector<Vector3> textureCoords, vector<Vector3> normals, float* bar, Vector3*);
+		unsigned char* shader(int , int);
+		unsigned char* shader(int , int, vector<Vector3> normals, float* bar, Vector3* l);
 		void map(string path);
 		void setTexture(string);
 		void draw();

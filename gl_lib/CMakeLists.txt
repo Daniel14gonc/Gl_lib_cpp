@@ -12,6 +12,8 @@ add_library(gl_lib SHARED
 	matrix.hpp
 	vector4.h
 	vector4.cpp
+	simplex.h
+	simplex.cpp
 )
 
 target_include_directories(gl_lib PUBLIC
