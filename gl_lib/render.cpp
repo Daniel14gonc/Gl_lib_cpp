@@ -1073,15 +1073,15 @@ unsigned char* Render::shader(int x, int y)
 unsigned char* Render::shader(int x, int y, vector<Vector3> normals, float* bar, Vector3* l)
 {
 	float noise = s.fractal(14, (float) x / 600.0, (float) y/ 600.0);
-	int dBlue[3] = {   2,  43,  68 }; // dark blue: deep water
-    int dpBlue[3] = {   9,  62,  92 }; // deep blue: water
-    int blue[3] = {  17,  82, 112 }; // blue: shallow water
-    int lBlue[3] = {  69, 108, 118 }; // light blue: shore
-    int green[3] = {  42, 102,  41 }; // green: grass
-    int lGreen[3] = { 115, 128,  77 }; // light green: veld
-    int brown[3] = { 153, 143,  92 }; // brown: tundra
+	int dBlue[3] = {   2, 3, 49}; // dark blue: deep water
+    int dpBlue[3] = {   37, 40, 85 }; // deep blue: water
+    int blue[3] = {  41, 49, 122 }; // blue: shallow water
+    int lBlue[3] = {  25, 133, 164 }; // light blue: shore
+    int green[3] = {  55, 72, 38 }; // green: grass
+    int lGreen[3] = { 76, 91, 60 }; // light green: veld
+    int brown[3] = { 154, 107, 82 }; // brown: tundra
     int grey[3] = { 179, 179, 179 }; // grey: rocks
-    int white[3] = { 255, 255, 255 }; // white: snow
+    int white[3] = { 205, 208, 215 }; // white: snow
 
 	float w = bar[0];
 	float u = bar[1];
@@ -1100,7 +1100,7 @@ unsigned char* Render::shader(int x, int y, vector<Vector3> normals, float* bar,
 	if (i > 1) i = 1;
 
 	unsigned char* col = new unsigned char[3];
-	if (noise     < 0.00f)
+	if (noise     < -0.20f)
     {
 		col[0] = (unsigned char) (dBlue[2] * i);
 		col[1] = (unsigned char) (dBlue[1] * i);
@@ -1118,6 +1118,12 @@ unsigned char* Render::shader(int x, int y, vector<Vector3> normals, float* bar,
 		col[1] = (unsigned char) (blue[1] * i);
 		col[2] = (unsigned char) (blue[0] * i);
     }
+	else if(noise < 0.22f)
+    {
+		col[0] = (unsigned char) (lBlue[2] * i);
+		col[1] = (unsigned char) (lBlue[1] * i);
+		col[2] = (unsigned char) (lBlue[0] * i);
+    }
     else if(noise < 0.7f)
     {
 		col[0] = (unsigned char) (green[2] * i);
@@ -1130,7 +1136,7 @@ unsigned char* Render::shader(int x, int y, vector<Vector3> normals, float* bar,
 		col[1] = (unsigned char) (lGreen[1] * i);
 		col[2] = (unsigned char) (lGreen[0] * i);
     }
-    else if(noise < 0.9f)
+    else if(noise < 0.95f)
     {
 		col[0] = (unsigned char) (brown[2] * i);
 		col[1] = (unsigned char) (brown[1] * i);
