@@ -229,7 +229,6 @@ void Render::viewPort(int x, int y, int w, int h)
 		y0 = y;
 		widthV = w;
 		heightV = h;
-		delete[] coordinates;
 	}
 }
 
