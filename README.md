@@ -38,3 +38,9 @@ las gráficas creadas.
 2. Ahora que estás en la branch polygons, solo corre `./run.sh`.
 2. Dentro la carpeta `build` encontrarás `image.bmp`.
 3. Si quieres cambiar la vista de la imagen, ve a `./src/textures.cpp`. Puedes cambiar el argumento de la función load camera para que muestre "medium", "dutch", "low" o "high".
+
+## Como ver el Lab 2.
+1. Después de clonar el repositorio tienes que cambiarte a la branch de matrix con `git checkout shader`.
+2. Ahora que estás en la branch polygons, solo corre `./run.sh`.
+3. Dentro la carpeta `build` encontrarás `image.bmp`.
+4. Si quieres ver el .bmp ya renderizado y la imagen de modelo ve a la carpeta `imagenes/`.
