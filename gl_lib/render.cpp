@@ -255,10 +255,9 @@ void Render::loadProjectionMatrix()
 
 void Render::loadViewportMatrix()
 {
-	cout << width << endl;
 	viewport = {{
-		{((float) (width))/2, 0, 0, ((float) width)/2},
-        {0, (float)(height)/2, 0, (float)(height)/2},
+		{((float) (widthV))/2, 0, 0, ((float) widthV)/2},
+        {0, (float)(heightV)/2, 0, (float)(heightV)/2},
         {0, 0, 128, 128},
         {0, 0, 0, 1}
 	}};
@@ -714,6 +713,14 @@ void Render::readObj(string filename)
 				activeVertexArray.push(vn.at(0));
 				activeVertexArray.push(vn.at(1));
 				activeVertexArray.push(vn.at(2));
+
+				activeVertexArray.push(vec.at(2));
+				activeVertexArray.push(vec.at(3));
+				activeVertexArray.push(vec.at(0));
+
+				activeVertexArray.push(vn.at(2));
+				activeVertexArray.push(vn.at(3));
+				activeVertexArray.push(vn.at(0));
 			}
 		}
 
@@ -880,10 +887,6 @@ void Render::triangle(vector<Vector3> vertices)
 					maxZ = z;
 			}
 
-			/* color[2] = (unsigned char) Acolor[0] * temp[0] + Bcolor[0] * temp[1] + Ccolor[0] * temp[2];
-			color[1] = (unsigned char) Acolor[1] * temp[0] + Bcolor[1] * temp[1] + Ccolor[1] * temp[2];
-			color[0] = (unsigned char) Acolor[2] * temp[0] + Bcolor[2] * temp[1] + Ccolor[2] * temp[2]; */
-
 			delete temp;
 		}
 }
@@ -961,7 +964,8 @@ void Render::triangle()
 			if (temp[0] >= 0 && temp[1] >= 0 && temp[2] >= 0)
 			{
 				float z = a.getZ() * temp[0] + b.getZ() * temp[1] + c.getZ() * temp[2];
-				if (zBuffer[x][y] < z && x > 0 && y > 0 && x < height && y < width)
+
+				if (zBuffer[x][y] < z && x < height && y < width && x > 0 && y > 0)
 				{
 					zBuffer[x][y] = z;
 					if (activeShader)
@@ -970,15 +974,13 @@ void Render::triangle()
 						vertex.push_back(a);
 						vertex.push_back(b);
 						vertex.push_back(c);
-						/*float xCenter = min.getX() + (max.getX() - min.getX())/2;
-						float yCenter = min.getY() + (max.getY() - min.getY())/2;*/
 						// unsigned char* col = shader(vertex, coords, norms, bar, l);
-						unsigned char* col = shader(x, y, norms, bar, l);
+						unsigned char* col = shader(x, y, norms, bar, l, min, max);
 						// cout << "i" << endl;
 						color[0] = col[0];
 						color[1] = col[1];
 						color[2] = col[2];
-						// cout << "s" << endl;
+						// cout << "s" << endl;*/
 					}
 
 					pointLine(x, y);
@@ -1020,15 +1022,36 @@ unsigned char* Render::shader(int x, int y)
 	int blue[3] =  {124, 57, 48};*/
 	if (noise     < 0.00f)
     {
-		col[0] = (unsigned char) dBlue[2];
-		col[1] = (unsigned char) dBlue[1];
-		col[2] = (unsigned char) dBlue[0];
+		int p = rand() % 10;
+		if (p < 5)
+		{
+			col[0] = (unsigned char) dBlue[2];
+			col[1] = (unsigned char) dBlue[1];
+			col[2] = (unsigned char) dBlue[0];
+		}
+		else
+		{
+			col[0] = (unsigned char) white[2];
+			col[1] = (unsigned char) white[1];
+			col[2] = (unsigned char) white[0];
+		}
     }
     else if(noise < 0.1f)
     {
-		col[0] = (unsigned char) dpBlue[2];
-		col[1] = (unsigned char) dpBlue[1];
-		col[2] = (unsigned char) dpBlue[0];
+		int p = rand() % 10;
+		cout << p << endl;
+		if (p < 5)
+		{
+			col[0] = (unsigned char) dpBlue[2];
+			col[1] = (unsigned char) dpBlue[1];
+			col[2] = (unsigned char) dpBlue[0];
+		}
+		else
+		{
+			col[0] = (unsigned char) white[2];
+			col[1] = (unsigned char) white[1];
+			col[2] = (unsigned char) white[0];
+		}
     }
     else if(noise < 0.2f)
     {
@@ -1070,9 +1093,9 @@ unsigned char* Render::shader(int x, int y)
 	return col;
 }
 
-unsigned char* Render::shader(int x, int y, vector<Vector3> normals, float* bar, Vector3* l)
+unsigned char* Render::shader(int x, int y, vector<Vector3> normals, float* bar, Vector3* l, Vector3 min, Vector3 max)
 {
-	float noise = s.fractal(14, (float) x / 600.0, (float) y/ 600.0);
+	float noise = s.fractal(10, (float) x / 200.0, (float) y / 200.0);
 	int dBlue[3] = {   2, 3, 49}; // dark blue: deep water
     int dpBlue[3] = {   37, 40, 85 }; // deep blue: water
     int blue[3] = {  41, 49, 122 }; // blue: shallow water
@@ -1082,6 +1105,16 @@ unsigned char* Render::shader(int x, int y, vector<Vector3> normals, float* bar,
     int brown[3] = { 154, 107, 82 }; // brown: tundra
     int grey[3] = { 179, 179, 179 }; // grey: rocks
     int white[3] = { 205, 208, 215 }; // white: snow
+	int greyM[3] = { 135, 124, 118}; // grey: rocks
+	int greyO[3] = { 224, 209, 207}; // grey: rocks
+
+	unsigned char* tempCol = new unsigned char [3];
+	
+
+	int tempX = (x / 15) + 400;
+	int tempY = (y / 15) + 400;
+
+	int p = rand() % 100;
 
 	float w = bar[0];
 	float u = bar[1];
@@ -1098,6 +1131,25 @@ unsigned char* Render::shader(int x, int y, vector<Vector3> normals, float* bar,
 	float i = ((iA * w) + (iB * u) + (iC * v)) * 3;
 	if (i < 0) i = 0;
 	if (i > 1) i = 1;
+	float noiseT = s.fractal(14, (float) tempX / 20.0, (float) tempY / 20.0);
+
+	if (noiseT < -0.3f)
+	{
+		tempCol[0] = (unsigned char) greyM[0] * i;
+		tempCol[1] = (unsigned char) greyM[1] * i;
+		tempCol[2] = (unsigned char) greyM[2] * i;
+	}
+	else
+	{
+		tempCol[0] = (unsigned char) greyO[0] * i;
+		tempCol[1] = (unsigned char) greyO[1] * i;
+		tempCol[2] = (unsigned char) greyO[2] * i;
+	}
+	
+	
+	frameBuffer[tempY][tempX][0] = tempCol[0];
+	frameBuffer[tempY][tempX][1] = tempCol[1];
+	frameBuffer[tempY][tempX][2] = tempCol[2];
 
 	unsigned char* col = new unsigned char[3];
 	if (noise     < -0.20f)
@@ -1105,6 +1157,7 @@ unsigned char* Render::shader(int x, int y, vector<Vector3> normals, float* bar,
 		col[0] = (unsigned char) (dBlue[2] * i);
 		col[1] = (unsigned char) (dBlue[1] * i);
 		col[2] = (unsigned char) (dBlue[0] * i);
+		
     }
     else if(noise < 0.1f)
     {
@@ -1323,7 +1376,6 @@ void Render::setTexture(string path)
 
 void Render::map(string path)
 {
-	cout << path << endl;
 	Texture* texture = new Texture(path + ".bmp");
 	startBuffer(texture->getWidth(), texture->getHeight());
     Obj obj(path + ".obj");
@@ -1368,7 +1420,16 @@ void Render::map(string path)
             drawLine(vt3, vt1);
         }
     }
+	
     write("map.bmp");
+	delete texture;
+}
+
+void Render::background(string path)
+{
+	Texture* texture = new Texture(path + ".bmp");
+    setBuffer(texture->getPixels());
+	write("image.bmp");
 	delete texture;
 }
 

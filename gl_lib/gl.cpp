@@ -101,3 +101,8 @@ void glShader()
 {
 	render->activate();
 }
+
+void glBackground(string path)
+{
+	render->background(path);
+}

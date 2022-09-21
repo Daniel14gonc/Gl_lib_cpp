@@ -68,8 +68,9 @@ class Render
 
 		unsigned char* shader(vector<Vector3> vertices, vector<Vector3> textureCoords, vector<Vector3> normals, float* bar, Vector3*);
 		unsigned char* shader(int , int);
-		unsigned char* shader(int , int, vector<Vector3> normals, float* bar, Vector3* l);
+		unsigned char* shader(int , int, vector<Vector3> normals, float* bar, Vector3* l, Vector3, Vector3);
 		void map(string path);
+		void background(string path);
 		void setTexture(string);
 		void draw();
 		void loadModelMatrix(float*, float*, float*);
