@@ -42,6 +42,8 @@ void Render::startBuffer(int w, int h)
 	widthV = w;
 	heightV = h;
 	clear();
+
+	tN = new Texture("RaptorN.bmp");
 }
 
 void Render::setBuffer(unsigned char*** buffer)
@@ -974,8 +976,8 @@ void Render::triangle()
 						vertex.push_back(a);
 						vertex.push_back(b);
 						vertex.push_back(c);
-						// unsigned char* col = shader(vertex, coords, norms, bar, l);
-						unsigned char* col = shader(x, y, norms, bar, l, min, max);
+						unsigned char* col = shader(vertex, coords, norms, bar, l);
+						// unsigned char* col = shader(x, y, norms, bar, l, min, max);
 						// cout << "i" << endl;
 						color[0] = col[0];
 						color[1] = col[1];
@@ -1228,16 +1230,13 @@ unsigned char* Render::shader(vector<Vector3> vertices, vector<Vector3> textureC
 	Vector3 nA = normals.at(0);
 	Vector3 nB = normals.at(1);
 	Vector3 nC = normals.at(2);
-
+	
 	float iA = nA.normalized().dot(l->normalized());
 	float iB = nB.normalized().dot(l->normalized());
 	float iC = nC.normalized().dot(l->normalized());
 
-	float i = ((iA * w) + (iB * u) + (iC * v)) * 3;
-	if (i < 0) i = 0;
-
-	/*Vector3 n = (b - a) * (c - a);
-	float i = n.normalized().dot(l->normalized());*/
+	// Vector3 n = (b - a) * (c - a);
+	// float i = n.normalized().dot(l->normalized());
 
 	float tAX = tA.getX();
 	float tAY = tA.getY();
@@ -1246,12 +1245,29 @@ unsigned char* Render::shader(vector<Vector3> vertices, vector<Vector3> textureC
 	float tCX = tC.getX();
 	float tCY = tC.getY();
 
+
+	float tx = tAX * w + tBX * u + tCX * v;
+	float ty = tAY * w + tBY * u + tCY * v;
+
+	
+	unsigned char* cl = tN->getColorIntensity(tx, ty, 1);
+
+	int bn = (int) cl[0];
+	int gn = (int) cl[1];
+	int rn = (int) cl[2];
+	Vector3 n(rn, gn, bn);
+
+	float i = n.normalized().dot(l->normalized());
+	if (i < 0) i = 0;
+
+
+	/*float i = ((iA * w) + (iB * u) + (iC * v)) * 3;
+	if (i < 0) i = 0;*/
+
+
 	if (activeTexture != NULL)
 	{
-		float tx = tAX * w + tBX * u + tCX * v;
-		float ty = tAY * w + tBY * u + tCY * v;
 		unsigned char* col = activeTexture->getColorIntensity(tx, ty, i);
-
 		return col;
 	}
 

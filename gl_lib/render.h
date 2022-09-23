@@ -18,6 +18,7 @@ class Render
 		float maxZ;
 		float minZ;
 		Texture* activeTexture;
+		Texture* tN;
 		Vector3* l;
 		unsigned char* clearColor;
 		unsigned char* color;
