@@ -21,3 +21,5 @@ void glLoadMatrix(float*, float*, float*);
 void glEye(float*, float*, float*);
 void glShader();
 void glBackground(string path);
+void glNormal(Texture*);
+void glClearNormal();

@@ -42,8 +42,16 @@ void Render::startBuffer(int w, int h)
 	widthV = w;
 	heightV = h;
 	clear();
+}
 
-	tN = new Texture("RaptorN.bmp");
+void Render::setNormal(Texture* normal)
+{
+	tN = normal;
+}
+
+void Render::clearNormal()
+{
+	tN = NULL;
 }
 
 void Render::setBuffer(unsigned char*** buffer)
@@ -258,8 +266,8 @@ void Render::loadProjectionMatrix()
 void Render::loadViewportMatrix()
 {
 	viewport = {{
-		{((float) (widthV))/2, 0, 0, ((float) widthV)/2},
-        {0, (float)(heightV)/2, 0, (float)(heightV)/2},
+		{((float) (widthV + x0))/2, 0, 0, ((float) widthV + x0)/2},
+        {0, (float)(heightV + y0)/2, 0, (float)(heightV + y0)/2},
         {0, 0, 128, 128},
         {0, 0, 0, 1}
 	}};
@@ -1248,21 +1256,23 @@ unsigned char* Render::shader(vector<Vector3> vertices, vector<Vector3> textureC
 
 	float tx = tAX * w + tBX * u + tCX * v;
 	float ty = tAY * w + tBY * u + tCY * v;
+	float i = 0;
+	if (tN != NULL)
+	{
+		unsigned char* cl = tN->getColorIntensity(tx, ty, 1);
 
-	
-	unsigned char* cl = tN->getColorIntensity(tx, ty, 1);
+		int bn = (int) cl[0];
+		int gn = (int) cl[1];
+		int rn = (int) cl[2];
+		Vector3 n(rn, gn, bn);
+		i = n.normalized().dot(l->normalized());
+	}
+	else
+	{
+		i = ((iA * w) + (iB * u) + (iC * v));
+	}
 
-	int bn = (int) cl[0];
-	int gn = (int) cl[1];
-	int rn = (int) cl[2];
-	Vector3 n(rn, gn, bn);
-
-	float i = n.normalized().dot(l->normalized());
 	if (i < 0) i = 0;
-
-
-	/*float i = ((iA * w) + (iB * u) + (iC * v)) * 3;
-	if (i < 0) i = 0;*/
 
 
 	if (activeTexture != NULL)

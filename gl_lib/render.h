@@ -79,4 +79,6 @@ class Render
 		void loadProjectionMatrix();
 		void loadViewportMatrix();
 		void activate();
+		void setNormal(Texture* normal);
+		void clearNormal();
 };

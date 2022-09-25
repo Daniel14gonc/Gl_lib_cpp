@@ -106,3 +106,13 @@ void glBackground(string path)
 {
 	render->background(path);
 }
+
+void glNormal(Texture* normal)
+{
+	render->setNormal(normal);
+}
+
+void glClearNormal()
+{
+	render->clearNormal();
+}
