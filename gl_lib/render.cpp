@@ -975,7 +975,7 @@ void Render::triangle()
 			{
 				float z = a.getZ() * temp[0] + b.getZ() * temp[1] + c.getZ() * temp[2];
 
-				if (zBuffer[x][y] < z && x < height && y < width && x > 0 && y > 0)
+				if (x < height && y < width && x > 0 && y > 0 && zBuffer[x][y] < z)
 				{
 					zBuffer[x][y] = z;
 					if (activeShader)
@@ -984,13 +984,16 @@ void Render::triangle()
 						vertex.push_back(a);
 						vertex.push_back(b);
 						vertex.push_back(c);
-						unsigned char* col = shader(vertex, coords, norms, bar, l);
-						// unsigned char* col = shader(x, y, norms, bar, l, min, max);
-						// cout << "i" << endl;
+						unsigned char* col;
+
+						// Uso de dos shaders
+						if (activeTexture != NULL)
+							col = shader(vertex, coords, norms, bar, l);
+						else
+							col = shader(x, y, norms, bar, l, min, max);
 						color[0] = col[0];
 						color[1] = col[1];
 						color[2] = col[2];
-						// cout << "s" << endl;*/
 					}
 
 					pointLine(x, y);
@@ -1105,18 +1108,13 @@ unsigned char* Render::shader(int x, int y)
 
 unsigned char* Render::shader(int x, int y, vector<Vector3> normals, float* bar, Vector3* l, Vector3 min, Vector3 max)
 {
-	float noise = s.fractal(10, (float) x / 200.0, (float) y / 200.0);
-	int dBlue[3] = {   2, 3, 49}; // dark blue: deep water
-    int dpBlue[3] = {   37, 40, 85 }; // deep blue: water
-    int blue[3] = {  41, 49, 122 }; // blue: shallow water
-    int lBlue[3] = {  25, 133, 164 }; // light blue: shore
-    int green[3] = {  55, 72, 38 }; // green: grass
-    int lGreen[3] = { 76, 91, 60 }; // light green: veld
-    int brown[3] = { 154, 107, 82 }; // brown: tundra
-    int grey[3] = { 179, 179, 179 }; // grey: rocks
-    int white[3] = { 205, 208, 215 }; // white: snow
-	int greyM[3] = { 135, 124, 118}; // grey: rocks
-	int greyO[3] = { 224, 209, 207}; // grey: rocks
+	float noise = s.fractal(10, (float) x / 40.0, (float) y / 40.0);
+	int dBlue[3] = {170,28,4}; // dark blue: deep water
+    int dpBlue[3] = {30,9,4}; // deep blue: water
+    int blue[3] = {250,200,9}; // blue: shallow water
+    int lBlue[3] = {201,83,3}; // light blue: shore
+    int green[3] = {177,51,0 }; // green: grass
+	int brown[3] = {160,98,74 };
 
 	unsigned char* tempCol = new unsigned char [3];
 	
@@ -1141,26 +1139,6 @@ unsigned char* Render::shader(int x, int y, vector<Vector3> normals, float* bar,
 	float i = ((iA * w) + (iB * u) + (iC * v)) * 3;
 	if (i < 0) i = 0;
 	if (i > 1) i = 1;
-	float noiseT = s.fractal(14, (float) tempX / 20.0, (float) tempY / 20.0);
-
-	if (noiseT < -0.3f)
-	{
-		tempCol[0] = (unsigned char) greyM[0] * i;
-		tempCol[1] = (unsigned char) greyM[1] * i;
-		tempCol[2] = (unsigned char) greyM[2] * i;
-	}
-	else
-	{
-		tempCol[0] = (unsigned char) greyO[0] * i;
-		tempCol[1] = (unsigned char) greyO[1] * i;
-		tempCol[2] = (unsigned char) greyO[2] * i;
-	}
-	
-	
-	frameBuffer[tempY][tempX][0] = tempCol[0];
-	frameBuffer[tempY][tempX][1] = tempCol[1];
-	frameBuffer[tempY][tempX][2] = tempCol[2];
-
 	unsigned char* col = new unsigned char[3];
 	if (noise     < -0.20f)
     {
@@ -1187,36 +1165,18 @@ unsigned char* Render::shader(int x, int y, vector<Vector3> normals, float* bar,
 		col[1] = (unsigned char) (lBlue[1] * i);
 		col[2] = (unsigned char) (lBlue[0] * i);
     }
-    else if(noise < 0.7f)
-    {
-		col[0] = (unsigned char) (green[2] * i);
-		col[1] = (unsigned char) (green[1] * i);
-		col[2] = (unsigned char) (green[0] * i);
-    }
-    else if(noise < 0.75f)
-    {
-		col[0] = (unsigned char) (lGreen[2] * i);
-		col[1] = (unsigned char) (lGreen[1] * i);
-		col[2] = (unsigned char) (lGreen[0] * i);
-    }
-    else if(noise < 0.95f)
+    else if(noise < 0.4f)
     {
 		col[0] = (unsigned char) (brown[2] * i);
 		col[1] = (unsigned char) (brown[1] * i);
 		col[2] = (unsigned char) (brown[0] * i);
     }
-    else if(noise < 0.970f)
-    {
-		col[0] = (unsigned char) (grey[2] * i);
-		col[1] = (unsigned char) (grey[1] * i);
-		col[2] = (unsigned char) (grey[0] * i);
-    }
-    else
-    {
-		col[0] = (unsigned char) (white[2]* i);
-		col[1] = (unsigned char) (white[1] * i);
-		col[2] = (unsigned char) (white[0] * i);
-    }
+	else
+	{
+		col[0] = (unsigned char) (green[2] * i);
+		col[1] = (unsigned char) (green[1] * i);
+		col[2] = (unsigned char) (green[0] * i);
+	}
 	
 	return col;
 }
@@ -1455,108 +1415,5 @@ void Render::background(string path)
 {
 	Texture* texture = new Texture(path + ".bmp");
     setBuffer(texture->getPixels());
-	write("image.bmp");
 	delete texture;
 }
-
-/*
-vector<int> Render::transformVertex(vector<float> vec, int* scale, int* translate)
-{
-	Vector3 v (
-		(vec.at(0) * scale[0]) + translate[0],
-		(vec.at(1) * scale[1]) + translate[1]
-	)
-	
-	vector<int> temp;
-	temp.push_back((int)((vec.at(0) * scale[0]) + translate[0]));
-	temp.push_back((int)((vec.at(1) * scale[1]) + translate[1]));
-	
-	return temp;
-}*/
-
-/*void Render::triangle(Vector3 a, Vector3 b, Vector3 c)
-{
-	drawLine(a, b);
-	drawLine(b, c);
-	drawLine(c, a);
-
-	a.round();
-	b.round();
-	c.round();
-
-	color[2] = (unsigned char) (rand() % 255);
-	color[1] = (unsigned char) (rand() % 255);
-	color[0] = (unsigned char) (rand() % 255);
-
-	if (a.getY() > b.getY())
-	{
-		Vector3 temp = a;
-		a = b;
-		b = temp;
-	}
-
-	if(a.getY() > c.getY())
-	{
-		Vector3 temp = a;
-		a = c;
-		c = temp;
-	}
-
-	if(b.getY() > c.getY())
-	{
-		Vector3 temp = b;
-		b = c;
-		c = temp;
-	}
-
-	float dx_ac = c.getX() - a.getX();
-	float dy_ac = c.getY() - a.getY();
-	if (dy_ac == 0)
-		return;
-	float m_ac = dx_ac / dy_ac;
-
-	float dx_ab = b.getX() - a.getX();
-	float dy_ab = b.getY() - a.getY();
-	if (dy_ab != 0)
-	{
-		float m_ab = dx_ab / dy_ab;
-		for (int y = (int) a.getY(); y <= (int) b.getY(); y++)
-		{
-			float x0 = a.getX() - m_ac * (a.getY() - y);
-			float xf = a.getX() - m_ab * (a.getY() - y);
-			if (x0 > xf)
-			{
-				float temp = x0;
-				x0 = xf;
-				xf = temp;
-			}
-			for (int x = (int) x0; x <= (int) xf; x++)
-			{
-				pointLine(y, x);
-			}
-		}
-	}
-
-	float dx_bc = c.getX() - b.getX();
-	float dy_bc = c.getY() - b.getY();
-	if (dy_bc != 0)
-	{
-		float m_bc = dx_bc / dy_bc;
-		for (int y = (int) b.getY(); y < (int) c.getY(); y++)
-		{
-			float x0 = a.getX() - m_ac * (a.getY() - y);
-			float xf = b.getX() - m_bc * (b.getY() - y);
-			if (x0 > xf)
-			{
-				float temp = x0;
-				x0 = xf;
-				xf = temp;
-			}
-			for (int x = (int) x0; x <= (int) xf; x++)
-			{
-				pointLine(y, x);
-			}
-		}
-	}
-}*/
-

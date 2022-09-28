@@ -14,12 +14,11 @@ void Texture::read()
     
     for (int i = 0; i < source.length(); i++) src[i] = source.at(i);
 	imageFile = fopen(src, "rb");
+    delete[] src;
 
     // read the 54-byte header
     unsigned char info[54];
-
     fread(info, sizeof(unsigned char), 54, imageFile); 
-    
     int headerSize = *(int*)&info[10];
     width = *(int*)&info[18];
     height = *(int*)&info[22];
@@ -62,7 +61,6 @@ void Texture::read()
         }
         x = x % width;
     }
-
 }
 
 unsigned char* Texture::getColor(float tx, float ty)
